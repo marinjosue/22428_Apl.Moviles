@@ -1,0 +1,6 @@
+projectKey=app_flutter
+serverUrl=http://localhost:9000
+serverVersion=25.5.0.107428
+dashboardUrl=http://localhost:9000/dashboard?id=app_flutter
+ceTaskId=e8227036-86d1-4373-b25e-76715e3b56b2
+ceTaskUrl=http://localhost:9000/api/ce/task?id=e8227036-86d1-4373-b25e-76715e3b56b2
