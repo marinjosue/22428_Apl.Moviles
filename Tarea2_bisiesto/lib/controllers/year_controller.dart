@@ -8,7 +8,7 @@ class YearController {
   List <int> getLast(int init){
     List<int> list = [];
     int actual = init;
-    while(list.length < 10){
+    while(list.length < 10 && actual > 0){
       if (verifyBisiesto(actual)){
         list.add(actual);
       }
