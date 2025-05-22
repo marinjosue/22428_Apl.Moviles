@@ -3,7 +3,6 @@ import 'package:ejer2_operaciones_basicas/pantallas/numeros_screen.dart';
 import 'package:ejer2_operaciones_basicas/pantallas/operaciones.dart';
 import 'package:ejer2_operaciones_basicas/pantallas/serie_screen.dart';
 import 'package:ejer2_operaciones_basicas/pantallas/sueldo_screen.dart';
-import 'package:ejer2_operaciones_basicas/pantallas/verificar_primo.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(const MyApp());
