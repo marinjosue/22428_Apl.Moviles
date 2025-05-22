@@ -4,6 +4,8 @@ import '../theme/button_styles.dart';
 import '../theme/color_schemes.dart';
 import '../controller/registration_controller.dart';
 import '../model/login_model.dart';
+import '../validators/form_validators.dart';
+
 
 class RegistrationPage extends StatefulWidget {
   @override
@@ -23,22 +25,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final postalCodeController = TextEditingController();
+  String? provinceName;
 
-  final Map<String, String> postalCodeMap = {
-    'Quito': '170150',
-    'Guayaquil': '090150',
-    'Cuenca': '010150',
-  };
 
-  String? validatePostalCode(String? value) {
-    if (value == null || value.isEmpty) return 'Requerido';
-    final city = cityController.text;
-    final expectedCode = postalCodeMap[city];
-    if (expectedCode != null && expectedCode != value) {
-      return 'El código postal para $city debe ser $expectedCode';
-    }
-    return null;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,15 +53,48 @@ class _RegistrationPageState extends State<RegistrationPage> {
             children: [
               const Icon(Icons.person, size: 100, color: Colors.white),
               const SizedBox(height: 20),
-              _buildField('Usuario', usernameController, icon: Icons.person),
-              _buildField('Contraseña', passwordController, icon: Icons.lock, obscure: true),
-              _buildField('Nombres', firstNameController, icon: Icons.badge),
-              _buildField('Apellidos', lastNameController, icon: Icons.badge_outlined),
-              _buildField('Dirección', addressController, icon: Icons.location_on),
-              _buildField('Ciudad', cityController, icon: Icons.location_city),
-              _buildField('Email', emailController, icon: Icons.email),
-              _buildField('Teléfono', phoneController, icon: Icons.phone),
-              _buildField('Código Postal', postalCodeController, icon: Icons.markunread_mailbox, validator: validatePostalCode),
+
+              _buildField('Usuario', usernameController, icon: Icons.person,  validator: FormValidators.validateUsername),
+              _buildField('Contraseña', passwordController, icon: Icons.lock, obscure: true,  validator: FormValidators.validatePassword),
+              _buildField('Nombres', firstNameController, icon: Icons.badge,  validator: FormValidators.validateText),
+              _buildField('Apellidos', lastNameController, icon: Icons.badge_outlined,  validator: FormValidators.validateText),
+              _buildField('Dirección', addressController, icon: Icons.location_on, validator: FormValidators.validateText),
+              _buildField('Ciudad', cityController, icon: Icons.location_city, validator: FormValidators.validateText),
+              _buildField('Email', emailController, icon: Icons.email, validator: FormValidators.validateEmail),
+              _buildField('Teléfono', phoneController, icon: Icons.phone, validator: FormValidators.validatePhone),
+              _buildField('Código Postal', postalCodeController, icon: Icons.markunread_mailbox,  validator: FormValidators.validatePostalCode),
+              ElevatedButton.icon(
+                style: AppButtonStyles.primary,
+                onPressed: () {
+                  final code = postalCodeController.text;
+                  final result = FormValidators.getProvinceByPostalCode(code);
+                  setState(() {
+                    provinceName = result;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        result != null
+                            ? 'Código válido. Pertenece a: $result'
+                            : 'Código postal inválido en Ecuador',
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.search),
+                label: const Text('Validar Código Postal', style: AppTextStyles.button),
+              ),
+              if (provinceName != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: Text(
+                    'Provincia: $provinceName',
+                    style: AppTextStyles.button.copyWith(color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+
               const SizedBox(height: 20),
               ElevatedButton(
                 style: AppButtonStyles.primary,
@@ -103,12 +125,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Widget _buildField(
-    String label,
-    TextEditingController controller, {
-    bool obscure = false,
-    IconData? icon,
-    String? Function(String?)? validator,
-  }) {
+      String label,
+      TextEditingController controller, {
+        bool obscure = false,
+        IconData? icon,
+        String? Function(String?)? validator,
+      }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
