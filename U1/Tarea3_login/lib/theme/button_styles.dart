@@ -8,7 +8,7 @@ class AppButtonStyles {
   );
 
   static final secondary = ElevatedButton.styleFrom(
-    backgroundColor: const Color.fromARGB(255, 212, 102, 102),
+    backgroundColor: const Color.fromARGB(255, 220, 231, 233),
     padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
   );

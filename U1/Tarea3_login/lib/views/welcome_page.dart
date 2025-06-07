@@ -101,8 +101,8 @@ class _WelcomePageState extends State<WelcomePage> {
               const SizedBox(height: 20),
 
               // Solo muestra los botones si es josue/admin
-              if (_currentUsername == 'josue' &&
-                  _currentPassword == 'admin') ...[
+              if (_currentUsername == 'Josue' &&
+                  _currentPassword == 'admin123') ...[
                 ElevatedButton(
                   style: AppButtonStyles.primary,
                   onPressed: _loadAllUsers,

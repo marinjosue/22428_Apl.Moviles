@@ -32,7 +32,23 @@ class _SueldoScreenState extends State<SueldoScreen> {
       setState(() => resultado = 'La antigüedad no puede ser negativa.');
       return;
     }
+    if (antiguedad > edad) {
+      setState(() => resultado = 'La antigüedad no puede ser mayor que la edad.');
+      return;
+    }
+    if (edad > 80) {
+      setState(() => resultado = 'ya esta muerto ??.');
+      return;
+    }
+    if (edad == antiguedad) {
+      setState(() => resultado = 'Error: La antigüedad no puede ser igual a la edad.');
+      return;
+    }
 
+    if(edad - antiguedad < 18){
+      setState(() => resultado = 'Error: La edad menos la antigüedad no puede ser menor a 18.');
+      return;
+    }
     // Sueldo base
     int sueldo = 35000 + edad;
 

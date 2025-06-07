@@ -53,8 +53,16 @@ class _OperacionesBasicasState extends State<OperacionesBasicas> {
 
   //logica de la pantalla
   void operar(String operacion) {
-    double num1 = double.tryParse(num1Controller.text) ?? 0;
-    double num2 = double.tryParse(num2Controller.text) ?? 0;
+    double? num1 = double.tryParse(num1Controller.text);
+    double? num2 = double.tryParse(num2Controller.text);
+
+    if (num1 == null || num2 == null) {
+      setState(() {
+      resultado = 'Ingrese solo números válidos en ambos campos';
+      });
+      return;
+    }
+    
     double respuesta = 0;
     switch (operacion) {
       case "sumar":
@@ -67,11 +75,13 @@ class _OperacionesBasicasState extends State<OperacionesBasicas> {
         respuesta = num1 * num2;
         break;
       case "dividir":
-        if (num2 != 0) {
-          respuesta = num1 / num2;
+        if (num2 == 0) {
+          setState(() {
+        resultado = 'Error: No se puede dividir entre 0';
+          });
+          return;
         } else {
-          print("No se puede dividir entre 0");
-          respuesta = 0;
+          respuesta = num1 / num2;
         }
         break;
     }

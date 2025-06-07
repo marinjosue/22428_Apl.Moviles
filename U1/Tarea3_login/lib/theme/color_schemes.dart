@@ -7,5 +7,5 @@ class AppColorSchemes {
   );
 
   static const primary = Color.fromARGB(255, 189, 211, 16);
-  static const secondary = Color.fromARGB(255, 72, 186, 31);
+  static const secondary = Color.fromARGB(255, 113, 215, 185);
 }
