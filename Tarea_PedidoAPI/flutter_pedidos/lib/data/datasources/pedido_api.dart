@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../../domain/entities/pedido.dart';
 
 class PedidoApi {
-  final String baseUrl = 'http://localhost:8081'; // o localhost si pruebas en navegador
+  final String baseUrl = 'http://localhost:8080'; // o localhost si pruebas en navegador
 
   Future<List<Pedido>> getPedidos() async {
     final response = await http.get(Uri.parse('$baseUrl/pedidos'));
