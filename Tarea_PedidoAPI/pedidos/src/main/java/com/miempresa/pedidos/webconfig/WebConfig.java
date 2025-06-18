@@ -13,7 +13,7 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // permite a todos los endpoints//
-                        .allowedOrigins("http://localhost:60862") // origen de tu Flutter Web//
+                        .allowedOrigins("*") // origen de tu Flutter Web//
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowedHeaders("*");
             }

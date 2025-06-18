@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/pedido_provider.dart';
+import '../../validatories/validations.dart';
+import '../views/styles.dart';
 
 class AddDetallePage extends StatefulWidget {
   final int pedidoId;
@@ -29,7 +31,7 @@ class _AddDetallePageState extends State<AddDetallePage> {
   Future<void> _agregarDetalle() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      
+
       try {
         final provider = Provider.of<PedidoProvider>(context, listen: false);
         await provider.agregarDetalle(
@@ -38,15 +40,14 @@ class _AddDetallePageState extends State<AddDetallePage> {
           int.parse(_cantidadController.text),
           double.parse(_precioController.text),
         );
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Producto agregado exitosamente'),
             backgroundColor: Colors.green,
           ),
         );
-        
-        // Return true to indicate success
+
         Navigator.pop(context, true);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -64,143 +65,110 @@ class _AddDetallePageState extends State<AddDetallePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: Text('Agregar Producto'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
+      // En vez de backgroundColor usamos un Container con el fondo degradado
+      body: Container(
+        decoration: AppStyles.gradientBackground(),
+        child: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Card(
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Información del Producto',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      
-                      TextFormField(
-                        controller: _productoController,
-                        decoration: InputDecoration(
-                          labelText: 'Nombre del Producto',
-                          prefixIcon: Icon(Icons.shopping_basket),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Por favor ingrese el nombre del producto';
-                          }
-                          return null;
-                        },
-                      ),
-                      
-                      SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _cantidadController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: 'Cantidad',
-                          prefixIcon: Icon(Icons.numbers),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Por favor ingrese la cantidad';
-                          }
-                          final cantidad = int.tryParse(value);
-                          if (cantidad == null || cantidad <= 0) {
-                            return 'Ingrese una cantidad válida mayor a 0';
-                          }
-                          return null;
-                        },
-                      ),
-                      
-                      SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _precioController,
-                        keyboardType: TextInputType.numberWithOptions(decimal: true),
-                        decoration: InputDecoration(
-                          labelText: 'Precio Unitario',
-                          prefixIcon: Icon(Icons.attach_money),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Por favor ingrese el precio';
-                          }
-                          final precio = double.tryParse(value);
-                          if (precio == null || precio <= 0) {
-                            return 'Ingrese un precio válido mayor a 0';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
+              AppBar(
+                title: Text(
+                  'Agregar Producto',
+                  style: AppStyles.headingText2(),
                 ),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                centerTitle: true,
+                automaticallyImplyLeading: true,
+                iconTheme: IconThemeData(color: Colors.white),
               ),
-              
-              SizedBox(height: 24),
-              
-              ElevatedButton(
-                onPressed: _isLoading ? null : _agregarDetalle,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: _isLoading
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(16),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Card(
+                          color: Colors.white.withOpacity(0.9),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Infgesormación del Producto',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.indigo.shade900,
+                                  ),
+                                ),
+                                SizedBox(height: 20),
+                                TextFormField(
+                                  controller: _productoController,
+                                  decoration: AppStyles.textBoxDecoration(
+                                      hintText: 'Nombre del Producto'),
+                                  style: TextStyle(color: Colors.black87),
+                                  validator: Validations.validarNombre,
+                                ),
+                                SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _cantidadController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: AppStyles.textBoxDecoration(
+                                      hintText: 'Cantidad'),
+                                  style: TextStyle(color: Colors.black87),
+                                  validator: Validations.validarCantidad,
+                                ),
+                                SizedBox(height: 16),
+                                TextFormField(
+                                  controller: _precioController,
+                                  keyboardType:
+                                  TextInputType.numberWithOptions(decimal: true),
+                                  decoration: AppStyles.textBoxDecoration(
+                                      hintText: 'Precio Unitario'),
+                                  style: TextStyle(color: Colors.black87),
+                                  validator: Validations.validarPrecio,
+                                ),
+                              ],
                             ),
                           ),
-                          SizedBox(width: 12),
-                          Text('Agregando...'),
-                        ],
-                      )
-                    : Text(
-                        'Agregar Producto',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
+                        ),
+                        SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _agregarDetalle,
+                          style: AppStyles.primaryButton(),
+                          child: _isLoading
+                              ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text('Agregando...'),
+                            ],
+                          )
+                              : Text(
+                            'Agregar Producto',
+                            style: AppStyles.buttonText(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -209,3 +177,4 @@ class _AddDetallePageState extends State<AddDetallePage> {
     );
   }
 }
+
