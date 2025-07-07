@@ -62,10 +62,21 @@ class _LoginViewState extends State<LoginView> {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
               ),
-            const SizedBox(height: 16),
-            ElevatedButton(
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
               onPressed: _login,
-              child: const Text('Iniciar sesión'),
+              icon: Icon(Icons.login, size: 20),
+              label: Text('Iniciar sesión', style: TextStyle(fontSize: 16)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+                minimumSize: Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                elevation: 4,
+                shadowColor: Colors.teal.withOpacity(0.5),
+              ),
             ),
             TextButton(
               onPressed: _goToRegister,

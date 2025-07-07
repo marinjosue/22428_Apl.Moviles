@@ -4,7 +4,7 @@ import '../services/sitios_service.dart';
 
 class SitiosViewModel extends ChangeNotifier {
   final SitiosService _sitiosService = SitiosService();
-  
+
   List<SitioTuristico> _sitios = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -58,7 +58,7 @@ class SitiosViewModel extends ChangeNotifier {
         categoria: categoria,
         imagenes: imagenes,
       );
-      
+
       // Recargar sitios después de crear uno nuevo
       await cargarSitios();
     } catch (e) {
@@ -81,4 +81,3 @@ class SitiosViewModel extends ChangeNotifier {
     notifyListeners();
   }
 }
-     

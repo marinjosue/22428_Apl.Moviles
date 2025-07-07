@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'viewmodels/auth_viewmodel.dart';
-import 'views/auth/login_view.dart';
+import 'viewmodels/sitios_viewmodel.dart';
+import 'viewmodels/comentario_viewmodel.dart';
 import 'views/drawer/drawer_view.dart';
 
 void main() {
@@ -16,6 +17,8 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => SitiosViewModel()),
+        ChangeNotifierProvider(create: (_) => ComentarioViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -24,13 +27,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
         ),
-        home: Consumer<AuthViewModel>(
-          builder: (context, authVM, _) {
-            return authVM.isAuthenticated
-                ? const DrawerView()
-                : const LoginView();
-          },
-        ),
+        home: const DrawerView(), // ← SIEMPRE inicia en la vista principal
       ),
     );
   }
