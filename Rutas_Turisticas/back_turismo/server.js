@@ -22,6 +22,67 @@ async function getDb() {
 }
 
 // RUTAS DE USUARIOS
+const bcrypt = require('bcrypt');
+
+app.post('/register', async (req, res) => {
+  try {
+    const db = await getDb();
+    const { uid, name, email, password, photoUrl } = req.body;
+
+    const existing = await db.collection('usuarios').findOne({ uid });
+    if (existing) {
+      return res.status(400).json({ error: 'Usuario ya existe' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = {
+      uid,
+      name,
+      email,
+      photoUrl: photoUrl || '',
+      password: hashedPassword,
+      favoritos: [],
+      fechaRegistro: new Date(),
+      ultimaActividad: new Date()
+    };
+
+    await db.collection('usuarios').insertOne(user);
+
+    res.status(201).json({ message: 'Usuario registrado exitosamente' });
+  } catch (error) {
+    console.error('Error en /register:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+app.post('/login', async (req, res) => {
+  try {
+    const db = await getDb();
+    const { uid, password } = req.body;
+
+    const user = await db.collection('usuarios').findOne({ uid });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
+    }
+
+    await db.collection('usuarios').updateOne(
+      { uid },
+      { $set: { ultimaActividad: new Date() } }
+    );
+
+    const { password: _, ...userSinPassword } = user; // remover la clave
+    res.json({ user: userSinPassword });
+  } catch (error) {
+    console.error('Error en /login:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
 
 // Crear o actualizar perfil de usuario
 app.post('/user', async (req, res) => {

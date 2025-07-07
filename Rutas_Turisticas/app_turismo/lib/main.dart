@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// Comentamos Firebase temporalmente hasta configurarlo
-// import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'viewmodels/sitios_viewmodel.dart';
 import 'viewmodels/auth_viewmodel.dart';
@@ -14,8 +12,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
-    // Comentamos Firebase temporalmente
-    // await Firebase.initializeApp();
+
     runApp(MyApp());
   } catch (e) {
     print('Error initializing app: $e');
