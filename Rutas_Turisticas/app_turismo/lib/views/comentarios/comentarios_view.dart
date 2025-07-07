@@ -127,7 +127,7 @@ class _ComentariosViewState extends State<ComentariosView> {
   }
 
   Widget _buildComentarioCard(Comentario comentario, AuthViewModel authViewModel) {
-    final esAutorComentario = authViewModel.userData?.id == comentario.usuarioId;
+    final esAutorComentario = authViewModel.usuario?.id == comentario.usuarioId;
     
     return Card(
       margin: EdgeInsets.only(bottom: 12),
@@ -226,7 +226,7 @@ class _ComentariosViewState extends State<ComentariosView> {
 
   void _mostrarDialogoComentario(BuildContext context) {
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    if (!authViewModel.isAuthenticated || authViewModel.userData == null) {
+    if (!authViewModel.isAuthenticated || authViewModel.usuario == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Debes iniciar sesión para comentar')),
       );
@@ -242,8 +242,8 @@ class _ComentariosViewState extends State<ComentariosView> {
         final comentarioViewModel = Provider.of<ComentarioViewModel>(context, listen: false);
         comentarioViewModel.crearComentario(
           sitioId: widget.sitioId,
-          usuarioId: authViewModel.userData!.id,
-          nombreUsuario: authViewModel.userData!.nombre,
+          usuarioId: authViewModel.usuario!.id,
+          nombreUsuario: authViewModel.usuario!.nombre,
           texto: texto,
           calificacion: calificacion,
         );

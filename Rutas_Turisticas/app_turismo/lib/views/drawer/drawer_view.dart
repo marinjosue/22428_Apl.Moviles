@@ -45,13 +45,13 @@ class _DrawerViewState extends State<DrawerView> {
                         style: TextStyle(color: Colors.white, fontSize: 22),
                       ),
                       SizedBox(height: 10),
-                      if (authViewModel.userData != null)
+                      if (authViewModel.usuario != null)
                         Text(
-                          'Hola, ${authViewModel.userData!.nombre}',
+                          'Hola, ${authViewModel.usuario!.nombre}',
                           style: TextStyle(color: Colors.white70, fontSize: 16),
                         ),
                       Text(
-                        authViewModel.userData?.email ?? '',
+                        authViewModel.usuario?.email ?? '',
                         style: TextStyle(color: Colors.white60, fontSize: 14),
                       ),
                     ],

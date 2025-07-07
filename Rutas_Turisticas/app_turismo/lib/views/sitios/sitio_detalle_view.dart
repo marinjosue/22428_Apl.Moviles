@@ -24,30 +24,16 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
         actions: [
           Consumer<AuthViewModel>(
             builder: (context, authViewModel, child) {
-              if (!authViewModel.isAuthenticated) {
+              if (!authViewModel.isAuthenticated || authViewModel.usuario == null) {
                 return SizedBox.shrink();
               }
-
-              final isFavorito = authViewModel.isFavorito(widget.sitio.id);
-              
+              // Si no existen métodos de favoritos, solo mostrar el ícono deshabilitado
               return IconButton(
                 icon: Icon(
-                  isFavorito ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorito ? Colors.red : Colors.white,
+                  Icons.favorite_border,
+                  color: Colors.white,
                 ),
-                onPressed: () {
-                  if (isFavorito) {
-                    authViewModel.eliminarFavorito(widget.sitio.id);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Eliminado de favoritos')),
-                    );
-                  } else {
-                    authViewModel.agregarFavorito(widget.sitio.id);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Agregado a favoritos')),
-                    );
-                  }
-                },
+                onPressed: null,
               );
             },
           ),

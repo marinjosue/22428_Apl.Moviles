@@ -1,33 +1,35 @@
 import 'package:flutter/material.dart';
 import '../services/user_service.dart';
+import '../models/usuario.dart';
 
 class PerfilViewModel extends ChangeNotifier {
   final UserService _userService = UserService();
 
-  Map<String, dynamic>? _perfil;
-  Map<String, dynamic>? get perfil => _perfil;
+  Usuario? _usuario;
+  Usuario? get usuario => _usuario;
 
   bool _cargando = false;
   bool get cargando => _cargando;
 
-  Future<void> cargarPerfil(String uid) async {
+  Future<void> cargarPerfil(String id) async {
     _cargando = true;
     notifyListeners();
-    _perfil = await _userService.getPerfil(uid);
+    try {
+      _usuario = await _userService.getPerfilUsuario(id);
+    } catch (e) {
+      _usuario = null;
+    }
     _cargando = false;
     notifyListeners();
   }
 
-  Future<void> actualizarPerfil(String uid, String name, String email, String photoUrl) async {
+  Future<void> actualizarPerfil(String id, String nombre, String email) async {
     _cargando = true;
     notifyListeners();
-    await _userService.crearOActualizarPerfil(
-      uid: uid,
-      name: name,
-      email: email,
-      photoUrl: photoUrl,
-    );
-    await cargarPerfil(uid);
+    try {
+      await _userService.actualizarPerfilUsuario(id, nombre, email);
+      await cargarPerfil(id);
+    } catch (e) {}
     _cargando = false;
     notifyListeners();
   }

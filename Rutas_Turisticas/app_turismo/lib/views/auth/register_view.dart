@@ -207,14 +207,17 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 
-  void _register() {
+  void _register() async {
     if (_formKey.currentState!.validate()) {
       final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-      authViewModel.createUserWithEmailAndPassword(
-        _emailController.text.trim(),
-        _passwordController.text,
-        _nameController.text.trim(),
+      await authViewModel.registerWithBackend(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        nombre: _nameController.text.trim(),
       );
+      if (authViewModel.isAuthenticated) {
+        Navigator.of(context).pop(); // O navega a la pantalla principal
+      }
     }
   }
 }

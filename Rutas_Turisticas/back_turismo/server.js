@@ -26,7 +26,10 @@ MongoClient.connect(mongoUrl, { useUnifiedTopology: true })
 // Crear o actualizar perfil de usuario
 app.post('/user', async (req, res) => {
   try {
-    const { uid, name, email, photoUrl } = req.body;
+    if (!db) {
+      console.error('DB no inicializada');
+      return res.status(500).json({ error: 'DB no inicializada' });
+    }
     
     const user = {
       uid,
