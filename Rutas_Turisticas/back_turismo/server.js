@@ -6,31 +6,28 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
-// MongoDB connection
-let db;
 const mongoUrl = process.env.MONGODB_URI;
+let cachedClient = null;
+let cachedDb = null;
 
-MongoClient.connect(mongoUrl, { useUnifiedTopology: true })
-  .then(client => {
-    console.log('Conectado a MongoDB');
-    db = client.db();
-  })
-  .catch(error => console.error('Error conectando a MongoDB:', error));
+async function getDb() {
+  if (cachedDb) return cachedDb;
+  const client = await MongoClient.connect(mongoUrl, { useUnifiedTopology: true });
+  cachedClient = client;
+  cachedDb = client.db();
+  return cachedDb;
+}
 
 // RUTAS DE USUARIOS
 
 // Crear o actualizar perfil de usuario
 app.post('/user', async (req, res) => {
   try {
-    if (!db) {
-      console.error('DB no inicializada');
-      return res.status(500).json({ error: 'DB no inicializada' });
-    }
-    
+    const db = await getDb();
+    const { uid, name, email, photoUrl } = req.body;
     const user = {
       uid,
       name,
@@ -60,6 +57,7 @@ app.post('/user', async (req, res) => {
 // Obtener perfil de usuario
 app.get('/user/:uid', async (req, res) => {
   try {
+    const db = await getDb();
     const { uid } = req.params;
     const user = await db.collection('usuarios').findOne({ uid });
     
@@ -77,6 +75,7 @@ app.get('/user/:uid', async (req, res) => {
 // Agregar sitio a favoritos
 app.post('/user/:uid/favoritos', async (req, res) => {
   try {
+    const db = await getDb();
     const { uid } = req.params;
     const { sitioId } = req.body;
 
@@ -98,6 +97,7 @@ app.post('/user/:uid/favoritos', async (req, res) => {
 // Eliminar sitio de favoritos
 app.delete('/user/:uid/favoritos', async (req, res) => {
   try {
+    const db = await getDb();
     const { uid } = req.params;
     const { sitioId } = req.body;
 
@@ -119,6 +119,7 @@ app.delete('/user/:uid/favoritos', async (req, res) => {
 // Obtener favoritos del usuario
 app.get('/user/:uid/favoritos', async (req, res) => {
   try {
+    const db = await getDb();
     const { uid } = req.params;
     const user = await db.collection('usuarios').findOne({ uid });
     
@@ -134,6 +135,7 @@ app.get('/user/:uid/favoritos', async (req, res) => {
 // Crear comentario
 app.post('/comentarios', async (req, res) => {
   try {
+    const db = await getDb();
     const { sitioId, usuarioId, nombreUsuario, texto, calificacion } = req.body;
     
     const comentario = {
@@ -156,6 +158,7 @@ app.post('/comentarios', async (req, res) => {
 // Obtener comentarios por sitio
 app.get('/comentarios/sitio/:sitioId', async (req, res) => {
   try {
+    const db = await getDb();
     const { sitioId } = req.params;
     const comentarios = await db.collection('comentarios')
       .find({ sitioId })
@@ -172,6 +175,7 @@ app.get('/comentarios/sitio/:sitioId', async (req, res) => {
 // Obtener comentarios por usuario
 app.get('/comentarios/usuario/:usuarioId', async (req, res) => {
   try {
+    const db = await getDb();
     const { usuarioId } = req.params;
     const comentarios = await db.collection('comentarios')
       .find({ usuarioId })
@@ -188,6 +192,7 @@ app.get('/comentarios/usuario/:usuarioId', async (req, res) => {
 // Actualizar comentario
 app.put('/comentarios/:id', async (req, res) => {
   try {
+    const db = await getDb();
     const { id } = req.params;
     const { texto, calificacion } = req.body;
 
@@ -212,6 +217,7 @@ app.put('/comentarios/:id', async (req, res) => {
 // Eliminar comentario
 app.delete('/comentarios/:id', async (req, res) => {
   try {
+    const db = await getDb();
     const { id } = req.params;
     await db.collection('comentarios').deleteOne({ _id: new ObjectId(id) });
     
@@ -225,6 +231,7 @@ app.delete('/comentarios/:id', async (req, res) => {
 // Obtener calificación promedio de un sitio
 app.get('/comentarios/sitio/:sitioId/promedio', async (req, res) => {
   try {
+    const db = await getDb();
     const { sitioId } = req.params;
     const result = await db.collection('comentarios').aggregate([
       { $match: { sitioId } },
@@ -246,6 +253,7 @@ app.get('/comentarios/sitio/:sitioId/promedio', async (req, res) => {
 // Obtener todos los sitios turísticos
 app.get('/sitios', async (req, res) => {
   try {
+    const db = await getDb();
     const sitios = await db.collection('sitios_turisticos').find({}).toArray();
     res.json(sitios);
   } catch (error) {
@@ -257,6 +265,7 @@ app.get('/sitios', async (req, res) => {
 // Obtener sitio por ID
 app.get('/sitios/:id', async (req, res) => {
   try {
+    const db = await getDb();
     const { id } = req.params;
     const sitio = await db.collection('sitios_turisticos').findOne({ _id: new ObjectId(id) });
     
@@ -274,6 +283,7 @@ app.get('/sitios/:id', async (req, res) => {
 // Crear sitio turístico (para administradores)
 app.post('/sitios', async (req, res) => {
   try {
+    const db = await getDb();
     const { nombre, descripcion, latitud, longitud, categoria, imagenes } = req.body;
     
     const sitio = {
@@ -297,6 +307,7 @@ app.post('/sitios', async (req, res) => {
 // Inicializar datos de ejemplo
 app.post('/init-data', async (req, res) => {
   try {
+    const db = await getDb();
     // Verificar si ya existen sitios
     const existingSites = await db.collection('sitios_turisticos').countDocuments();
     
