@@ -1,63 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/auth_viewmodel.dart';
-import '../drawer/drawer_view.dart';
+import 'register_view.dart';
 
 class LoginView extends StatefulWidget {
+  final VoidCallback? redirectAfterLogin;
+  const LoginView({super.key, this.redirectAfterLogin});
+
   @override
   State<LoginView> createState() => _LoginViewState();
 }
 
 class _LoginViewState extends State<LoginView> {
-  final _emailController = TextEditingController();
+  final _uidController = TextEditingController();
   final _passwordController = TextEditingController();
+  String? _errorMessage;
 
   void _login() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-    if (email.isEmpty || password.isEmpty) return;
-
     final authVM = Provider.of<AuthViewModel>(context, listen: false);
-    await authVM.loginWithBackend(email: email, password: password);
+    final error = await authVM.login(
+      _uidController.text.trim(),
+      _passwordController.text.trim(),
+    );
 
-    if (authVM.isAuthenticated) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => DrawerView()),
-      );
+    if (error == null) {
+      if (widget.redirectAfterLogin != null) {
+        widget.redirectAfterLogin!();
+      }
+      Navigator.pop(context); // O reemplaza por DrawerView si quieres
+    } else {
+      setState(() => _errorMessage = error);
     }
+  }
+
+  void _goToRegister() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RegisterView()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final authVM = Provider.of<AuthViewModel>(context);
     return Scaffold(
-      appBar: AppBar(title: Text('Iniciar Sesión')),
+      appBar: AppBar(title: const Text('Iniciar sesión')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            if (authVM.errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(authVM.errorMessage!,
-                    style: TextStyle(color: Colors.red)),
-              ),
             TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Correo electrónico'),
+              controller: _uidController,
+              decoration: const InputDecoration(labelText: 'Correo electrónico'),
             ),
             TextField(
               controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Contraseña'),
               obscureText: true,
+              decoration: const InputDecoration(labelText: 'Contraseña'),
             ),
-            SizedBox(height: 20),
+            if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+              ),
+            const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: authVM.isLoading ? null : _login,
-              child: authVM.isLoading
-                  ? CircularProgressIndicator(color: Colors.white)
-                  : Text('Iniciar Sesión'),
+              onPressed: _login,
+              child: const Text('Iniciar sesión'),
+            ),
+            TextButton(
+              onPressed: _goToRegister,
+              child: const Text('¿No tienes cuenta? Regístrate'),
             ),
           ],
         ),

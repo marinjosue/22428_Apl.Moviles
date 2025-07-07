@@ -1,267 +1,181 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import '../../config/api_config.dart';
 import '../../viewmodels/auth_viewmodel.dart';
-import '../../models/sitio_turistico.dart';
-import '../comentarios/comentarios_view.dart';
+import '../auth/login_view.dart';
 
 class SitioDetalleView extends StatefulWidget {
-  final SitioTuristico sitio;
-
-  const SitioDetalleView({Key? key, required this.sitio}) : super(key: key);
+  final Map<String, dynamic> sitio;
+  const SitioDetalleView({super.key, required this.sitio});
 
   @override
-  _SitioDetalleViewState createState() => _SitioDetalleViewState();
+  State<SitioDetalleView> createState() => _SitioDetalleViewState();
 }
 
 class _SitioDetalleViewState extends State<SitioDetalleView> {
+  late GoogleMapController _mapController;
+  List<dynamic> _comentarios = [];
+  String _nuevoComentario = '';
+  double _nuevaCalificacion = 5.0;
+  bool _cargando = true;
+  double _promedio = 0.0;
+  int _total = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarComentarios();
+    _cargarPromedio();
+  }
+
+  Future<void> _cargarComentarios() async {
+    final url = Uri.parse('${ApiConfig.apiBase}/comentarios/sitio/${widget.sitio['_id']}');
+    final res = await http.get(url);
+    if (res.statusCode == 200) {
+      setState(() => _comentarios = jsonDecode(res.body));
+    }
+  }
+
+  Future<void> _cargarPromedio() async {
+    final url = Uri.parse('${ApiConfig.apiBase}/comentarios/sitio/${widget.sitio['_id']}/promedio');
+    final res = await http.get(url);
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      setState(() {
+        _promedio = double.parse(data['promedio']);
+        _total = data['total'];
+        _cargando = false;
+      });
+    }
+  }
+
+  Future<void> _enviarComentario(String uid, String nombre) async {
+    final url = Uri.parse('${ApiConfig.apiBase}/comentarios');
+    final body = jsonEncode({
+      'sitioId': widget.sitio['_id'],
+      'usuarioId': uid,
+      'nombreUsuario': nombre,
+      'texto': _nuevoComentario,
+      'calificacion': _nuevaCalificacion,
+    });
+
+    final res = await http.post(url, headers: {'Content-Type': 'application/json'}, body: body);
+    if (res.statusCode == 201) {
+      _nuevoComentario = '';
+      await _cargarComentarios();
+      await _cargarPromedio();
+    }
+  }
+
+  Future<void> _agregarFavorito(String uid) async {
+    final url = Uri.parse('${ApiConfig.apiBase}/user/$uid/favoritos');
+    await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'sitioId': widget.sitio['_id']}),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Agregado a favoritos')));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authVM = Provider.of<AuthViewModel>(context);
+    final sitio = widget.sitio;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.sitio.nombre),
-        backgroundColor: Colors.blue[700],
-        foregroundColor: Colors.white,
-        actions: [
-          Consumer<AuthViewModel>(
-            builder: (context, authViewModel, child) {
-              if (!authViewModel.isAuthenticated || authViewModel.usuario == null) {
-                return SizedBox.shrink();
-              }
-              // Si no existen métodos de favoritos, solo mostrar el ícono deshabilitado
-              return IconButton(
-                icon: Icon(
-                  Icons.favorite_border,
-                  color: Colors.white,
-                ),
-                onPressed: null,
-              );
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(sitio['nombre'])),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Imagen del sitio (placeholder)
-            Container(
-              height: 250,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.blue[300]!,
-                    Colors.blue[600]!,
-                  ],
+            SizedBox(
+              height: 200,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(sitio['latitud'], sitio['longitud']),
+                  zoom: 14,
                 ),
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 80,
-                      color: Colors.white,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      widget.sitio.nombre,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                markers: {
+                  Marker(
+                    markerId: const MarkerId('sitio'),
+                    position: LatLng(sitio['latitud'], sitio['longitud']),
+                    infoWindow: InfoWindow(title: sitio['nombre']),
+                  ),
+                },
+                onMapCreated: (controller) => _mapController = controller,
               ),
             ),
-
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
+            const SizedBox(height: 12),
+            Text(sitio['descripcion'], style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 12),
+            if (!_cargando)
+              Text('⭐ $_promedio / 5.0   ($_total valoraciones)', style: const TextStyle(fontWeight: FontWeight.bold)),
+            const Divider(),
+            if (authVM.isAuthenticated)
+              ElevatedButton.icon(
+                onPressed: () => _agregarFavorito(authVM.usuario!['uid']),
+                icon: const Icon(Icons.favorite_border),
+                label: const Text('Agregar a favoritos'),
+              ),
+            const SizedBox(height: 16),
+            const Text('Comentarios', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            for (var c in _comentarios)
+              ListTile(
+                title: Text(c['nombreUsuario']),
+                subtitle: Text(c['texto']),
+                trailing: Text('${c['calificacion']} ⭐'),
+              ),
+            const SizedBox(height: 16),
+            if (authVM.isAuthenticated)
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Título y ubicación
-                  Text(
-                    widget.sitio.nombre,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  const Text('Tu comentario:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextField(
+                    onChanged: (val) => _nuevoComentario = val,
+                    decoration: const InputDecoration(hintText: 'Escribe tu opinión'),
                   ),
-                  SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.location_on, color: Colors.grey[600], size: 16),
-                      SizedBox(width: 4),
-                      Text(
-                        '${widget.sitio.latitud.toStringAsFixed(4)}, ${widget.sitio.longitud.toStringAsFixed(4)}',
-                        style: TextStyle(color: Colors.grey[600]),
+                      const Text('Calificación:'),
+                      Slider(
+                        value: _nuevaCalificacion,
+                        onChanged: (val) => setState(() => _nuevaCalificacion = val),
+                        divisions: 4,
+                        min: 1,
+                        max: 5,
+                        label: _nuevaCalificacion.toStringAsFixed(1),
                       ),
+                      Text('${_nuevaCalificacion.toStringAsFixed(1)} ⭐'),
                     ],
                   ),
-                  SizedBox(height: 20),
-
-                  // Descripción
-                  Text(
-                    'Descripción',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    widget.sitio.descripcion,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.justify,
-                  ),
-                  SizedBox(height: 24),
-
-                  // Secciones de acción
-                  _buildActionSection(
-                    context,
-                    'Ver en Mapa',
-                    Icons.map,
-                    Colors.green,
-                    () => _verEnMapa(context),
-                  ),
-                  SizedBox(height: 12),
-                  _buildActionSection(
-                    context,
-                    'Ver Comentarios',
-                    Icons.comment,
-                    Colors.blue,
-                    () => _verComentarios(context),
-                  ),
-                  SizedBox(height: 12),
-                  _buildActionSection(
-                    context,
-                    'Compartir',
-                    Icons.share,
-                    Colors.orange,
-                    () => _compartir(context),
-                  ),
-
-                  SizedBox(height: 32),
-
-                  // Información adicional
-                  Card(
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Información Adicional',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 12),
-                          _buildInfoRow(Icons.access_time, 'Horario', 'Abierto 24 horas'),
-                          _buildInfoRow(Icons.local_parking, 'Estacionamiento', 'Disponible'),
-                          _buildInfoRow(Icons.wheelchair_pickup, 'Accesibilidad', 'Parcial'),
-                          _buildInfoRow(Icons.pets, 'Mascotas', 'Permitidas'),
-                        ],
-                      ),
-                    ),
+                  ElevatedButton(
+                    onPressed: _nuevoComentario.trim().isEmpty
+                        ? null
+                        : () => _enviarComentario(authVM.usuario!['uid'], authVM.usuario!['name']),
+                    child: const Text('Publicar comentario'),
                   ),
                 ],
+              )
+            else
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginView()),
+                  );
+                },
+                child: const Text('Inicia sesión para comentar'),
               ),
-            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildActionSection(
-    BuildContext context,
-    String titulo,
-    IconData icono,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icono, color: Colors.white, size: 24),
-            ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                titulo,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: color.withOpacity(0.8),
-                ),
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios, color: color, size: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icono, String titulo, String valor) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icono, size: 20, color: Colors.grey[600]),
-          SizedBox(width: 12),
-          Text(
-            '$titulo: ',
-            style: TextStyle(fontWeight: FontWeight.w500),
-          ),
-          Expanded(child: Text(valor)),
-        ],
-      ),
-    );
-  }
-
-  void _verEnMapa(BuildContext context) {
-    // TODO: Implementar navegación al mapa con el sitio marcado
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Funcionalidad de mapa en desarrollo')),
-    );
-  }
-
-  void _verComentarios(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ComentariosView(
-          sitioId: widget.sitio.id,
-          sitioNombre: widget.sitio.nombre,
-        ),
-      ),
-    );
-  }
-
-  void _compartir(BuildContext context) {
-    // TODO: Implementar funcionalidad de compartir
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Funcionalidad de compartir en desarrollo')),
     );
   }
 }

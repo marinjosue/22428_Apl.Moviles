@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../viewmodels/bottom_nav_viewmodel.dart';
-import 'sitios_view.dart';
+import '../bottomnav/sitios_view.dart';
 import '../gastronomia/gastronomia_view.dart';
 import '../transporte/transporte_view.dart';
 
+class BottomNavigation extends StatefulWidget {
+  const BottomNavigation({super.key});
 
-class BottomNavigation extends StatelessWidget {
-  final List<Widget> _screens = [
+  @override
+  State<BottomNavigation> createState() => _BottomNavigationState();
+}
+
+class _BottomNavigationState extends State<BottomNavigation> {
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
     SitiosView(),
     GastronomiaView(),
     TransporteView(),
@@ -15,33 +21,28 @@ class BottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<BottomNavViewModel>(
-      builder: (context, viewModel, child) {
-        return Scaffold(
-          body: _screens[viewModel.selectedIndex],
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: viewModel.selectedIndex,
-            selectedItemColor: Colors.red[800],
-            unselectedItemColor: Colors.grey[600],
-            showUnselectedLabels: true,
-            onTap: (int index) => viewModel.changeIndex(index),
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.location_on_outlined),
-                label: 'Sitios',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.restaurant_outlined),
-                label: 'Gastronomía',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.directions_bus_outlined),
-                label: 'Transporte',
-              ),
-            ],
+    return Scaffold(
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        selectedItemColor: Colors.teal,
+        unselectedItemColor: Colors.grey,
+        onTap: (index) => setState(() => _selectedIndex = index),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: 'Sitios turísticos',
           ),
-        );
-      },
+          BottomNavigationBarItem(
+            icon: Icon(Icons.restaurant),
+            label: 'Gastronomía',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.directions_bus),
+            label: 'Transporte',
+          ),
+        ],
+      ),
     );
   }
 }

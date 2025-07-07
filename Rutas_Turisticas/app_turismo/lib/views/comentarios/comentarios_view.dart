@@ -127,7 +127,7 @@ class _ComentariosViewState extends State<ComentariosView> {
   }
 
   Widget _buildComentarioCard(Comentario comentario, AuthViewModel authViewModel) {
-    final esAutorComentario = authViewModel.usuario?.id == comentario.usuarioId;
+    final esAutorComentario = authViewModel.usuario?['id'] == comentario.usuarioId;
     
     return Card(
       margin: EdgeInsets.only(bottom: 12),
@@ -242,8 +242,8 @@ class _ComentariosViewState extends State<ComentariosView> {
         final comentarioViewModel = Provider.of<ComentarioViewModel>(context, listen: false);
         comentarioViewModel.crearComentario(
           sitioId: widget.sitioId,
-          usuarioId: authViewModel.usuario!.id,
-          nombreUsuario: authViewModel.usuario!.nombre,
+          usuarioId: authViewModel.usuario!['id'],
+          nombreUsuario: authViewModel.usuario!['nombre'],
           texto: texto,
           calificacion: calificacion,
         );
