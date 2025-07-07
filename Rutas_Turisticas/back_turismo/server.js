@@ -34,7 +34,6 @@ app.post('/user', async (req, res) => {
       email,
       photoUrl: photoUrl || '',
       favoritos: [],
-      fechaRegistro: new Date(),
       ultimaActividad: new Date()
     };
 
@@ -50,7 +49,7 @@ app.post('/user', async (req, res) => {
     res.status(200).json({ message: 'Usuario creado/actualizado exitosamente' });
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(500).json({ error: error.message || 'Error interno del servidor' });
   }
 });
 
