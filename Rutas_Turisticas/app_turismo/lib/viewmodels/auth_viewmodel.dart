@@ -1,86 +1,42 @@
 import 'package:flutter/material.dart';
-// Comentamos Firebase temporalmente
-// import 'package:firebase_auth/firebase_auth.dart';
-// import '../services/auth_service.dart';
-// import '../services/user_service.dart';
+import '../services/auth_service.dart';
+import '../services/user_service.dart';
 import '../models/usuario.dart';
 
 class AuthViewModel extends ChangeNotifier {
-  // Versión simplificada sin Firebase para testing
   Usuario? _userData;
   bool _isLoading = false;
   String? _errorMessage;
   bool _isAuthenticated = false;
 
+  final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
+
   Usuario? get userData => _userData;
-  // User? get firebaseUser => null; // Temporalmente null
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _isAuthenticated;
-
-  AuthViewModel() {
-    // Simulamos un usuario logueado automáticamente para testing
-    _simulateAutoLogin();
-  }
-
-  void _simulateAutoLogin() {
-    Future.delayed(Duration(seconds: 1), () {
-      _userData = Usuario(
-        id: 'test_user_123',
-        email: 'usuario@test.com',
-        nombre: 'Usuario de Prueba',
-        sitiosFavoritos: [],
-        fechaRegistro: DateTime.now(),
-      );
-      _isAuthenticated = true;
-      notifyListeners();
-    });
-  }
-
-  Future<void> signInAnonymously() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-    
-    try {
-      await Future.delayed(Duration(seconds: 1)); // Simular carga
-      
-      _userData = Usuario(
-        id: 'anonymous_user_${DateTime.now().millisecondsSinceEpoch}',
-        email: 'anonimo@app.com',
-        nombre: 'Usuario Anónimo',
-        sitiosFavoritos: [],
-        fechaRegistro: DateTime.now(),
-      );
-      _isAuthenticated = true;
-    } catch (e) {
-      _errorMessage = 'Error al iniciar sesión: $e';
-    }
-    
-    _isLoading = false;
-    notifyListeners();
-  }
 
   Future<void> signInWithEmailAndPassword(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
-    
     try {
-      await Future.delayed(Duration(seconds: 1)); // Simular carga
-      
-      _userData = Usuario(
-        id: 'user_${DateTime.now().millisecondsSinceEpoch}',
-        email: email,
-        nombre: 'Usuario',
-        sitiosFavoritos: [],
-        fechaRegistro: DateTime.now(),
-      );
-      _isAuthenticated = true;
+      final user = await _authService.signInWithEmailAndPassword(email, password);
+      if (user != null) {
+        final perfil = await _userService.getPerfil(user.uid);
+        if (perfil != null) {
+          _userData = Usuario.fromMap(perfil, user.uid);
+          _isAuthenticated = true;
+        } else {
+          _errorMessage = 'No se pudo obtener el perfil.';
+        }
+      } else {
+        _errorMessage = 'Usuario o contraseña incorrectos.';
+      }
     } catch (e) {
       _errorMessage = 'Error al iniciar sesión: $e';
     }
-    
     _isLoading = false;
     notifyListeners();
   }
@@ -89,22 +45,46 @@ class AuthViewModel extends ChangeNotifier {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
-    
     try {
-      await Future.delayed(Duration(seconds: 1)); // Simular carga
-      
-      _userData = Usuario(
-        id: 'user_${DateTime.now().millisecondsSinceEpoch}',
-        email: email,
-        nombre: name,
-        sitiosFavoritos: [],
-        fechaRegistro: DateTime.now(),
-      );
-      _isAuthenticated = true;
+      final user = await _authService.createUserWithEmailAndPassword(email, password, name);
+      if (user != null) {
+        final perfil = await _userService.getPerfil(user.uid);
+        if (perfil != null) {
+          _userData = Usuario.fromMap(perfil, user.uid);
+          _isAuthenticated = true;
+        } else {
+          _errorMessage = 'No se pudo crear el perfil.';
+        }
+      } else {
+        _errorMessage = 'No se pudo crear el usuario.';
+      }
     } catch (e) {
       _errorMessage = 'Error al crear cuenta: $e';
     }
-    
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> signInAnonymously() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final user = await _authService.signInAnonymously();
+      if (user != null) {
+        final perfil = await _userService.getPerfil(user.uid);
+        if (perfil != null) {
+          _userData = Usuario.fromMap(perfil, user.uid);
+          _isAuthenticated = true;
+        } else {
+          _errorMessage = 'No se pudo obtener el perfil.';
+        }
+      } else {
+        _errorMessage = 'No se pudo iniciar sesión anónima.';
+      }
+    } catch (e) {
+      _errorMessage = 'Error al iniciar sesión anónima: $e';
+    }
     _isLoading = false;
     notifyListeners();
   }
@@ -112,15 +92,13 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> signOut() async {
     _isLoading = true;
     notifyListeners();
-    
     try {
-      await Future.delayed(Duration(milliseconds: 500)); // Simular carga
+      await _authService.signOut();
       _userData = null;
       _isAuthenticated = false;
     } catch (e) {
       _errorMessage = 'Error al cerrar sesión: $e';
     }
-    
     _isLoading = false;
     notifyListeners();
   }
@@ -129,32 +107,22 @@ class AuthViewModel extends ChangeNotifier {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
-    
     try {
-      await Future.delayed(Duration(seconds: 1)); // Simular envío
-      // Simular éxito
+      await _authService.sendPasswordResetEmail(email);
     } catch (e) {
       _errorMessage = 'Error al enviar email de recuperación: $e';
     }
-    
     _isLoading = false;
     notifyListeners();
   }
 
   Future<void> agregarFavorito(String sitioId) async {
     if (_userData == null) return;
-    
     try {
-      final favoritosActualizados = List<String>.from(_userData!.sitiosFavoritos);
-      if (!favoritosActualizados.contains(sitioId)) {
-        favoritosActualizados.add(sitioId);
-        _userData = Usuario(
-          id: _userData!.id,
-          email: _userData!.email,
-          nombre: _userData!.nombre,
-          sitiosFavoritos: favoritosActualizados,
-          fechaRegistro: _userData!.fechaRegistro,
-        );
+      await _userService.agregarFavorito(_userData!.id, sitioId);
+      final perfil = await _userService.getPerfil(_userData!.id);
+      if (perfil != null) {
+        _userData = Usuario.fromMap(perfil, _userData!.id);
         notifyListeners();
       }
     } catch (e) {
@@ -165,18 +133,13 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<void> eliminarFavorito(String sitioId) async {
     if (_userData == null) return;
-    
     try {
-      final favoritosActualizados = List<String>.from(_userData!.sitiosFavoritos);
-      favoritosActualizados.remove(sitioId);
-      _userData = Usuario(
-        id: _userData!.id,
-        email: _userData!.email,
-        nombre: _userData!.nombre,
-        sitiosFavoritos: favoritosActualizados,
-        fechaRegistro: _userData!.fechaRegistro,
-      );
-      notifyListeners();
+      await _userService.eliminarFavorito(_userData!.id, sitioId);
+      final perfil = await _userService.getPerfil(_userData!.id);
+      if (perfil != null) {
+        _userData = Usuario.fromMap(perfil, _userData!.id);
+        notifyListeners();
+      }
     } catch (e) {
       _errorMessage = 'Error al eliminar favorito: $e';
       notifyListeners();

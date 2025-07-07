@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../bottomnav/bottom_navigation.dart';
 import '../auth/login_view.dart';
-import 'inicio_view.dart';
 import 'rutas_view.dart';
 import 'perfil_view.dart';
 import '../../viewmodels/auth_viewmodel.dart';

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/bottom_nav_viewmodel.dart';
 import 'sitios_view.dart';
-import 'gastronomia_view.dart';
-import 'transporte_view.dart';
+import '../gastronomia/gastronomia_view.dart';
+import '../transporte/transporte_view.dart';
+
 
 class BottomNavigation extends StatelessWidget {
   final List<Widget> _screens = [
