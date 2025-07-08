@@ -40,14 +40,18 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
 
   Future<void> _cargarComentarios() async {
     try {
-      final url = Uri.parse('${ApiConfig.apiBase}/comentarios/sitio/${widget.sitio['_id']}');
-      final res = await http.get(url).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException('La conexión tardó demasiado tiempo');
-        },
+      final url = Uri.parse(
+        '${ApiConfig.apiBase}/comentarios/sitio/${widget.sitio['_id']}',
       );
-      
+      final res = await http
+          .get(url)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw TimeoutException('La conexión tardó demasiado tiempo');
+            },
+          );
+
       if (res.statusCode == 200) {
         setState(() => _comentarios = jsonDecode(res.body));
       }
@@ -59,14 +63,18 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
 
   Future<void> _cargarPromedio() async {
     try {
-      final url = Uri.parse('${ApiConfig.apiBase}/comentarios/sitio/${widget.sitio['_id']}/promedio');
-      final res = await http.get(url).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException('La conexión tardó demasiado tiempo');
-        },
+      final url = Uri.parse(
+        '${ApiConfig.apiBase}/comentarios/sitio/${widget.sitio['_id']}/promedio',
       );
-      
+      final res = await http
+          .get(url)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw TimeoutException('La conexión tardó demasiado tiempo');
+            },
+          );
+
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         setState(() {
@@ -84,16 +92,20 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
   Future<void> _verificarFavorito() async {
     final authVM = Provider.of<AuthViewModel>(context, listen: false);
     if (!authVM.isAuthenticated) return;
-    
+
     try {
-      final url = Uri.parse('${ApiConfig.apiBase}/user/${authVM.usuario!['uid']}/favoritos/check/${widget.sitio['_id']}');
-      final res = await http.get(url).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw TimeoutException('La conexión tardó demasiado tiempo');
-        },
+      final url = Uri.parse(
+        '${ApiConfig.apiBase}/user/${authVM.usuario!['uid']}/favoritos/check/${widget.sitio['_id']}',
       );
-      
+      final res = await http
+          .get(url)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw TimeoutException('La conexión tardó demasiado tiempo');
+            },
+          );
+
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         setState(() => _isFavorite = data['isFavorite']);
@@ -107,7 +119,7 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
   Future<void> _enviarComentario(String uid, String nombre) async {
     try {
       setState(() => _cargando = true);
-      
+
       final url = Uri.parse('${ApiConfig.apiBase}/comentarios');
       final body = jsonEncode({
         'sitioId': widget.sitio['_id'],
@@ -118,17 +130,15 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
         'fecha': DateTime.now().toIso8601String(),
       });
 
-      final res = await http.post(
-        url, 
-        headers: {'Content-Type': 'application/json'}, 
-        body: body
-      ).timeout(
-        const Duration(seconds: 15),
-        onTimeout: () {
-          throw TimeoutException('La conexión tardó demasiado tiempo');
-        },
-      );
-      
+      final res = await http
+          .post(url, headers: {'Content-Type': 'application/json'}, body: body)
+          .timeout(
+            const Duration(seconds: 15),
+            onTimeout: () {
+              throw TimeoutException('La conexión tardó demasiado tiempo');
+            },
+          );
+
       if (res.statusCode == 201) {
         setState(() {
           _nuevoComentario = '';
@@ -142,11 +152,11 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
             'fecha': DateTime.now().toIso8601String(),
           });
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Comentario publicado con éxito'))
+          const SnackBar(content: Text('Comentario publicado con éxito')),
         );
-        
+
         await _cargarComentarios();
         await _cargarPromedio();
       } else {
@@ -154,60 +164,57 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
       }
     } catch (e) {
       print('Error al enviar comentario: $e');
-      _mostrarErrorSnackbar('No se pudo enviar el comentario: Comprueba tu conexión');
+      _mostrarErrorSnackbar(
+        'No se pudo enviar el comentario: Comprueba tu conexión',
+      );
     } finally {
       setState(() => _cargando = false);
     }
   }
 
   Future<void> _toggleFavorito(String uid) async {
+    final authVM = Provider.of<AuthViewModel>(context, listen: false);
     try {
       final url = Uri.parse('${ApiConfig.apiBase}/user/$uid/favoritos');
-      
-      // Optimistic update - actualizar UI inmediatamente
       setState(() => _isFavorite = !_isFavorite);
-      
+
       if (!_isFavorite) {
-        // Eliminar de favoritos (era favorito antes del toggle)
-        await http.delete(
+        // Eliminar de favoritos
+        final res = await http.delete(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'sitioId': widget.sitio['_id']}),
-        ).timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            throw TimeoutException('La conexión tardó demasiado tiempo');
-          },
         );
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Eliminado de favoritos'))
-        );
+        if (res.statusCode == 200) {
+          // Actualizar manualmente los favoritos en el modelo de usuario
+          final List<dynamic> favoritosActuales = List.from(authVM.usuario!['favoritos'] ?? []);
+          favoritosActuales.remove(widget.sitio['_id']);
+          authVM.actualizarFavoritos(favoritosActuales);
+        }
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Eliminado de favoritos')));
       } else {
-        // Agregar a favoritos (no era favorito antes del toggle)
-        await http.post(
+        // Agregar a favoritos
+        final res = await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'sitioId': widget.sitio['_id']}),
-        ).timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            throw TimeoutException('La conexión tardó demasiado tiempo');
-          },
         );
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Agregado a favoritos'))
-        );
+        if (res.statusCode == 200) {
+          // Actualizar manualmente los favoritos en el modelo de usuario
+          final List<dynamic> favoritosActuales = List.from(authVM.usuario!['favoritos'] ?? []);
+          if (!favoritosActuales.contains(widget.sitio['_id'])) {
+            favoritosActuales.add(widget.sitio['_id']);
+          }
+          authVM.actualizarFavoritos(favoritosActuales);
+        }
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Agregado a favoritos')));
       }
     } catch (e) {
-      print('Error en operación de favoritos: $e');
-      // Revertir el cambio optimista en caso de error
       setState(() => _isFavorite = !_isFavorite);
       _mostrarErrorSnackbar('Error al actualizar favoritos: Comprueba tu conexión');
     }
   }
-  
+
   void _mostrarErrorSnackbar(String mensaje) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -221,7 +228,7 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           },
         ),
-      )
+      ),
     );
   }
 
@@ -232,7 +239,8 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
     final lng = sitio['longitud'];
     final nombre = Uri.encodeComponent(sitio['nombre'] ?? '');
 
-    String googleMapsUrl = 'https://www.google.com/maps/search/?api=1&query=$lat,$lng($nombre)';
+    String googleMapsUrl =
+        'https://www.google.com/maps/search/?api=1&query=$lat,$lng($nombre)';
     String appleMapsUrl = 'https://maps.apple.com/?q=$lat,$lng';
 
     String url = Platform.isIOS ? appleMapsUrl : googleMapsUrl;
@@ -286,7 +294,7 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
                 onMapCreated: (controller) => _mapController = controller,
               ),
             ),
-            
+
             // Botón para abrir ruta
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
@@ -317,17 +325,23 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
                   children: [
                     Text(
                       'Descripción',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     SizedBox(height: 8),
-                    Text(sitio['descripcion'], style: const TextStyle(fontSize: 16)),
+                    Text(
+                      sitio['descripcion'],
+                      style: const TextStyle(fontSize: 16),
+                    ),
                   ],
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Valoración promedio
             if (!_cargando)
               Card(
@@ -340,7 +354,10 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
                       SizedBox(width: 8),
                       Text(
                         '$_promedio / 5.0',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       SizedBox(width: 8),
                       Text('($_total valoraciones)'),
@@ -348,9 +365,9 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
                   ),
                 ),
               ),
-              
+
             const SizedBox(height: 16),
-            
+
             // Botón de favoritos
             if (authVM.isAuthenticated)
               ElevatedButton.icon(
@@ -369,12 +386,13 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  backgroundColor: _isFavorite ? Colors.grey.shade200 : Colors.pink.shade50,
+                  backgroundColor:
+                      _isFavorite ? Colors.grey.shade200 : Colors.pink.shade50,
                 ),
               ),
-              
+
             const SizedBox(height: 16),
-            
+
             // Sección de comentarios
             Card(
               elevation: 2,
@@ -388,17 +406,21 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
                       children: [
                         Text(
                           'Comentarios recientes',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         TextButton(
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => ComentariosView(
-                                  sitioId: widget.sitio['_id'],
-                                  sitioNombre: widget.sitio['nombre'],
-                                ),
+                                builder:
+                                    (_) => ComentariosView(
+                                      sitioId: widget.sitio['_id'],
+                                      sitioNombre: widget.sitio['nombre'],
+                                    ),
                               ),
                             );
                           },
@@ -406,52 +428,78 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
                         ),
                       ],
                     ),
-                    
+
                     // Lista de comentarios (máximo 3)
                     if (_comentarios.isEmpty)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text('No hay comentarios aún. ¡Sé el primero en comentar!'),
+                        child: Text(
+                          'No hay comentarios aún. ¡Sé el primero en comentar!',
+                        ),
                       )
                     else
-                      for (var i = 0; i < (_comentarios.length > 3 ? 3 : _comentarios.length); i++)
+                      for (
+                        var i = 0;
+                        i < (_comentarios.length > 3 ? 3 : _comentarios.length);
+                        i++
+                      )
                         ListTile(
                           title: Text(_comentarios[i]['nombreUsuario']),
                           subtitle: Text(_comentarios[i]['texto']),
-                          trailing: Text('${_comentarios[i]['calificacion']} ⭐'),
+                          trailing: Text(
+                            '${_comentarios[i]['calificacion']} ⭐',
+                          ),
                         ),
-                    
+
                     const Divider(),
-                    
+
                     // Formulario de comentario
                     if (authVM.isAuthenticated)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Deja tu comentario:', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const Text(
+                            'Deja tu comentario:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           TextField(
                             onChanged: (val) => _nuevoComentario = val,
-                            decoration: const InputDecoration(hintText: 'Escribe tu opinión'),
+                            decoration: const InputDecoration(
+                              hintText: 'Escribe tu opinión',
+                            ),
                           ),
                           Row(
                             children: [
                               const Text('Calificación:'),
-                              Slider(
-                                value: _nuevaCalificacion,
-                                onChanged: (val) => setState(() => _nuevaCalificacion = val),
-                                divisions: 4,
-                                min: 1,
-                                max: 5,
-                                label: _nuevaCalificacion.toStringAsFixed(1),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Slider(
+                                  value: _nuevaCalificacion,
+                                  onChanged:
+                                      (val) => setState(
+                                        () => _nuevaCalificacion = val,
+                                      ),
+                                  divisions: 4,
+                                  min: 1,
+                                  max: 5,
+                                  label: _nuevaCalificacion.toStringAsFixed(1),
+                                ),
                               ),
-                              Text('${_nuevaCalificacion.toStringAsFixed(1)} ⭐'),
+                              SizedBox(width: 8),
+                              Text(
+                                '${_nuevaCalificacion.toStringAsFixed(1)} ⭐',
+                              ),
                             ],
                           ),
                           // Update the comment publication button
                           ElevatedButton(
-                            onPressed: _nuevoComentario.trim().isEmpty
-                                ? null
-                                : () => _enviarComentario(authVM.usuario!['uid'], authVM.usuario!['name']),
+                            onPressed:
+                                _nuevoComentario.trim().isEmpty
+                                    ? null
+                                    : () => _enviarComentario(
+                                      authVM.usuario!['uid'],
+                                      authVM.usuario!['name'],
+                                    ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -461,7 +509,10 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
                               ],
                             ),
                             style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 10,
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -474,7 +525,9 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const LoginView()),
+                            MaterialPageRoute(
+                              builder: (_) => const LoginView(),
+                            ),
                           );
                         },
                         child: const Text('Inicia sesión para comentar'),
@@ -489,4 +542,3 @@ class _SitioDetalleViewState extends State<SitioDetalleView> {
     );
   }
 }
-

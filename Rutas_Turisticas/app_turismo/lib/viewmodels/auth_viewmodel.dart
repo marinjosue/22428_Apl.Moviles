@@ -18,8 +18,28 @@ class AuthViewModel with ChangeNotifier {
     }
   }
 
-  Future<String?> register(String uid, String name, String email, String password, [String photoUrl = '']) async {
-    final result = await _authService.register(uid, name, email, password, photoUrl);
+  // En AuthViewModel
+  void actualizarFavoritos(List<dynamic> nuevosFavoritos) {
+    if (usuario != null) {
+      usuario!['favoritos'] = nuevosFavoritos;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> register(
+    String uid,
+    String name,
+    String email,
+    String password, [
+    String photoUrl = '',
+  ]) async {
+    final result = await _authService.register(
+      uid,
+      name,
+      email,
+      password,
+      photoUrl,
+    );
     if (result['success']) {
       return null;
     } else {

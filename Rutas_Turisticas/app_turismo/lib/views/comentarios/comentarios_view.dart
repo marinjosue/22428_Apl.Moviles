@@ -23,8 +23,10 @@ class _ComentariosViewState extends State<ComentariosView> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ComentarioViewModel>(context, listen: false)
-          .cargarComentariosBySitio(widget.sitioId);
+      Provider.of<ComentarioViewModel>(
+        context,
+        listen: false,
+      ).cargarComentariosBySitio(widget.sitioId);
     });
   }
 
@@ -54,10 +56,11 @@ class _ComentariosViewState extends State<ComentariosView> {
                     Icon(Icons.star, color: Colors.amber, size: 30),
                     SizedBox(width: 8),
                     Text(
-                      comentarioViewModel.calificacionPromedio.toStringAsFixed(1),
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+                      comentarioViewModel.calificacionPromedio.toStringAsFixed(
+                        1,
                       ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     SizedBox(width: 8),
                     Text(
@@ -70,41 +73,44 @@ class _ComentariosViewState extends State<ComentariosView> {
 
               // Lista de comentarios
               Expanded(
-                child: comentarioViewModel.comentarios.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.comment_outlined,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'No hay comentarios aún',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Colors.grey[600],
+                child:
+                    comentarioViewModel.comentarios.isEmpty
+                        ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.comment_outlined,
+                                size: 64,
+                                color: Colors.grey[400],
                               ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              '¡Sé el primero en comentar!',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Colors.grey[500],
+                              SizedBox(height: 16),
+                              Text(
+                                'No hay comentarios aún',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(color: Colors.grey[600]),
                               ),
-                            ),
-                          ],
+                              SizedBox(height: 8),
+                              Text(
+                                '¡Sé el primero en comentar!',
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: Colors.grey[500]),
+                              ),
+                            ],
+                          ),
+                        )
+                        : ListView.builder(
+                          padding: EdgeInsets.all(16),
+                          itemCount: comentarioViewModel.comentarios.length,
+                          itemBuilder: (context, index) {
+                            final comentario =
+                                comentarioViewModel.comentarios[index];
+                            return _buildComentarioCard(
+                              comentario,
+                              authViewModel,
+                            );
+                          },
                         ),
-                      )
-                    : ListView.builder(
-                        padding: EdgeInsets.all(16),
-                        itemCount: comentarioViewModel.comentarios.length,
-                        itemBuilder: (context, index) {
-                          final comentario = comentarioViewModel.comentarios[index];
-                          return _buildComentarioCard(comentario, authViewModel);
-                        },
-                      ),
               ),
             ],
           );
@@ -115,7 +121,7 @@ class _ComentariosViewState extends State<ComentariosView> {
           if (!authViewModel.isAuthenticated) {
             return SizedBox.shrink();
           }
-          
+
           return FloatingActionButton(
             onPressed: () => _mostrarDialogoComentario(context),
             child: Icon(Icons.add_comment),
@@ -126,9 +132,13 @@ class _ComentariosViewState extends State<ComentariosView> {
     );
   }
 
-  Widget _buildComentarioCard(Comentario comentario, AuthViewModel authViewModel) {
-    final esAutorComentario = authViewModel.usuario?['id'] == comentario.usuarioId;
-    
+  Widget _buildComentarioCard(
+    Comentario comentario,
+    AuthViewModel authViewModel,
+  ) {
+    final esAutorComentario =
+        authViewModel.usuario?['id'] == comentario.usuarioId;
+
     return Card(
       margin: EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -140,9 +150,11 @@ class _ComentariosViewState extends State<ComentariosView> {
             Row(
               children: [
                 CircleAvatar(
-                  child: Text(comentario.nombreUsuario.isNotEmpty 
-                      ? comentario.nombreUsuario[0].toUpperCase() 
-                      : 'U'),
+                  child: Text(
+                    comentario.nombreUsuario.isNotEmpty
+                        ? comentario.nombreUsuario[0].toUpperCase()
+                        : 'U',
+                  ),
                   backgroundColor: Colors.blue[100],
                 ),
                 SizedBox(width: 12),
@@ -158,8 +170,8 @@ class _ComentariosViewState extends State<ComentariosView> {
                         children: [
                           ...List.generate(5, (index) {
                             return Icon(
-                              index < comentario.calificacion 
-                                  ? Icons.star 
+                              index < comentario.calificacion
+                                  ? Icons.star
                                   : Icons.star_border,
                               color: Colors.amber,
                               size: 16,
@@ -168,8 +180,13 @@ class _ComentariosViewState extends State<ComentariosView> {
                           SizedBox(width: 8),
                           Text(
                             comentario.fecha.day.toString().padLeft(2, '0') +
-                                '/' + comentario.fecha.month.toString().padLeft(2, '0') +
-                                '/' + comentario.fecha.year.toString(),
+                                '/' +
+                                comentario.fecha.month.toString().padLeft(
+                                  2,
+                                  '0',
+                                ) +
+                                '/' +
+                                comentario.fecha.year.toString(),
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 12,
@@ -189,33 +206,37 @@ class _ComentariosViewState extends State<ComentariosView> {
                         _eliminarComentario(context, comentario.id);
                       }
                     },
-                    itemBuilder: (BuildContext context) => [
-                      PopupMenuItem(
-                        value: 'editar',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, size: 18),
-                            SizedBox(width: 8),
-                            Text('Editar'),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'eliminar',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, size: 18, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('Eliminar', style: TextStyle(color: Colors.red)),
-                          ],
-                        ),
-                      ),
-                    ],
+                    itemBuilder:
+                        (BuildContext context) => [
+                          PopupMenuItem(
+                            value: 'editar',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, size: 18),
+                                SizedBox(width: 8),
+                                Text('Editar'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'eliminar',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete, size: 18, color: Colors.red),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Eliminar',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                   ),
               ],
             ),
             SizedBox(height: 12),
-            
+
             // Texto del comentario
             Text(comentario.texto),
           ],
@@ -233,17 +254,34 @@ class _ComentariosViewState extends State<ComentariosView> {
       return;
     }
 
+    // CAMBIA AQUÍ: usa 'uid' y 'name'
+    final usuarioId = authViewModel.usuario!['uid']?.toString() ?? '';
+    final nombreUsuario =
+        authViewModel.usuario!['name']?.toString() ?? 'Usuario';
+
+    if (usuarioId.isEmpty || nombreUsuario.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo obtener la información del usuario'),
+        ),
+      );
+      return;
+    }
+
     _mostrarDialogoComentarioForm(
       context: context,
       titulo: 'Agregar Comentario',
       textoInicial: '',
       calificacionInicial: 5.0,
       onGuardar: (texto, calificacion) {
-        final comentarioViewModel = Provider.of<ComentarioViewModel>(context, listen: false);
+        final comentarioViewModel = Provider.of<ComentarioViewModel>(
+          context,
+          listen: false,
+        );
         comentarioViewModel.crearComentario(
           sitioId: widget.sitioId,
-          usuarioId: authViewModel.usuario!['id'],
-          nombreUsuario: authViewModel.usuario!['nombre'],
+          usuarioId: usuarioId,
+          nombreUsuario: nombreUsuario,
           texto: texto,
           calificacion: calificacion,
         );
@@ -251,14 +289,20 @@ class _ComentariosViewState extends State<ComentariosView> {
     );
   }
 
-  void _mostrarDialogoEditarComentario(BuildContext context, Comentario comentario) {
+  void _mostrarDialogoEditarComentario(
+    BuildContext context,
+    Comentario comentario,
+  ) {
     _mostrarDialogoComentarioForm(
       context: context,
       titulo: 'Editar Comentario',
       textoInicial: comentario.texto,
       calificacionInicial: comentario.calificacion,
       onGuardar: (texto, calificacion) {
-        final comentarioViewModel = Provider.of<ComentarioViewModel>(context, listen: false);
+        final comentarioViewModel = Provider.of<ComentarioViewModel>(
+          context,
+          listen: false,
+        );
         comentarioViewModel.actualizarComentario(
           comentarioId: comentario.id,
           sitioId: widget.sitioId,
@@ -309,7 +353,7 @@ class _ComentariosViewState extends State<ComentariosView> {
                     }),
                   ),
                   SizedBox(height: 16),
-                  
+
                   // Texto del comentario
                   TextField(
                     controller: textoController,
@@ -350,7 +394,9 @@ class _ComentariosViewState extends State<ComentariosView> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Eliminar comentario'),
-          content: Text('¿Estás seguro de que quieres eliminar este comentario?'),
+          content: Text(
+            '¿Estás seguro de que quieres eliminar este comentario?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -358,7 +404,10 @@ class _ComentariosViewState extends State<ComentariosView> {
             ),
             ElevatedButton(
               onPressed: () {
-                final comentarioViewModel = Provider.of<ComentarioViewModel>(context, listen: false);
+                final comentarioViewModel = Provider.of<ComentarioViewModel>(
+                  context,
+                  listen: false,
+                );
                 comentarioViewModel.eliminarComentario(
                   comentarioId: comentarioId,
                   sitioId: widget.sitioId,
