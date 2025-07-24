@@ -26,7 +26,9 @@ app.include_router(signals_router)
 app.include_router(chat_router)
 app.include_router(history_router)
 
+
 @app.get("/")
+@app.head("/")
 def read_root():
     return {"message": "Bienvenido a la API de Educación Vial"}
 
