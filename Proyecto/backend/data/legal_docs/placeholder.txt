@@ -1,0 +1,9 @@
+Ejemplo de texto legal.
+
+Este archivo sirve como ejemplo en ausencia de los documentos oficiales.
+Describe una infracción de tránsito tipo grave con una multa del 30% del
+salario básico unificado y reducción de 6 puntos en la licencia. En caso de no
+respetar una señal de PARE, las sanciones incluyen multas y puntos.
+
+Las sanciones por no respetar una señal de CEDA EL PASO incluyen la pérdida
+de puntos en la licencia y una sanción económica de acuerdo con el COIP.
