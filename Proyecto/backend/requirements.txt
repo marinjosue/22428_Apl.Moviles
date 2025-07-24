@@ -7,3 +7,4 @@ scikit-learn
 passlib[bcrypt]
 pydantic
 PyJWT
+python-jose[cryptography]
