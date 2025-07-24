@@ -35,5 +35,5 @@ def read_root():
 if __name__ == "__main__":
     import uvicorn
     import os
-    port = int(os.environ.get("PORT", PORT))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    port = int(os.environ["PORT"])  # Render SIEMPRE define PORT
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
