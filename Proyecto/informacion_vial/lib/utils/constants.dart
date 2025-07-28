@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // URL de tu backend FastAPI - CAMBIA A LA IP DE TU COMPUTADORA
-const String kBaseUrl = 'http://192.168.0.100:8000';
+const String kBaseUrl = 'https://two2428-apl-moviles.onrender.com';
 
 // Rutas nombradas
 const String kRouteLogin = '/login';

@@ -2,12 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/chat_viewmodel.dart';
 import '../models/chat_message.dart';
+import '../models/traffic_sign.dart';
 
-class ChatScreen extends StatelessWidget {
+class ChatScreen extends StatefulWidget {
+  @override
+  _ChatScreenState createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  bool _initialMessageSent = false;
+
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<ChatViewModel>(context);
     final controller = TextEditingController();
+    
+    // Recibe la señal detectada como argumento
+    final TrafficSign? sign = ModalRoute.of(context)?.settings.arguments as TrafficSign?;
+
+    // Si hay señal y no se ha enviado el mensaje inicial, agrégalo
+    if (sign != null && !_initialMessageSent) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        vm.addInitialMessage(sign.name);
+        _initialMessageSent = true;
+      });
+    }
 
     return Scaffold(
       body: Column(
