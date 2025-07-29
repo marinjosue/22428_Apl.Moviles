@@ -115,34 +115,34 @@ void main() {
       expect(fakePolizaVM.costoTotal, greaterThan(0));
     });
 
-    // testWidgets('Muestra errores con datos inválidos', (tester) async {
-    //   final fakeLoginVM = FakeLoginViewModel()..isLoggedIn = true;
-    //   final fakePolizaVM = FakePolizaViewModel()..setValoresInvalidos();
-    //
-    //   await tester.pumpWidget(
-    //     TestApp(
-    //       loginVM: fakeLoginVM,
-    //       polizaVM: fakePolizaVM,
-    //       isLoggedIn: true,
-    //     ),
-    //   );
-    //
-    //   await tester.pumpAndSettle();
-    //
-    //   // Intentar calcular - debería mostrar errores
-    //   await tester.tap(find.byKey(const ValueKey('crearPolizaButton')));
-    //
-    //   // Espera a que se complete la operación async
-    //   await tester.pumpAndSettle();
-    //
-    //   // Verifica que el error se haya establecido
-    //   expect(fakePolizaVM.error, isNotNull);
-    //
-    //   // Verifica los mensajes de error específicos en la UI
-    //   expect(find.text('Nombre requerido'), findsOneWidget);
-    //   expect(find.text('El valor debe ser positivo'), findsOneWidget);
-    //   expect(find.text('Edad mínima: 18 años'), findsOneWidget);
-    // });
+    /*testWidgets('Muestra errores con datos inválidos', (tester) async {
+      final fakeLoginVM = FakeLoginViewModel()..isLoggedIn = true;
+      final fakePolizaVM = FakePolizaViewModel()..setValoresInvalidos();
+
+      await tester.pumpWidget(
+        TestApp(
+          loginVM: fakeLoginVM,
+          polizaVM: fakePolizaVM,
+          isLoggedIn: true,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Intentar calcular - debería mostrar errores
+      await tester.tap(find.byKey(const ValueKey('crearPolizaButton')));
+
+      // Espera a que se complete la operación async
+      await tester.pumpAndSettle();
+
+      // Verifica que el error se haya establecido
+      expect(fakePolizaVM.error, isNotNull);
+
+      // Verifica los mensajes de error específicos en la UI
+      expect(find.text('Nombre requerido'), findsOneWidget);
+      expect(find.text('El valor debe ser positivo'), findsOneWidget);
+      expect(find.text('Edad mínima: 18 años'), findsOneWidget);
+    });*/
   });
 
   group('🟩 Consulta de pólizas', () {
