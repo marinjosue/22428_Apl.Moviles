@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pry_poliza_seguros/viewmodels/propietario_viewmodel.dart';
+import 'package:pry_poliza_seguros/viewmodels/propietario_viewmodel_interface.dart';
 import 'viewmodels/login_viewmodel_interface.dart';
 import 'viewmodels/poliza_viewmodel_interfaz.dart';
 import 'viewmodels/login_viewmodel.dart';
@@ -25,6 +26,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<PolizaViewModelInterface>(
           create: (_) => PolizaViewModel(), // Implementación concreta
         ),
+        ChangeNotifierProvider<PropietarioViewModelInterface>(
+          create: (_) => PropietarioViewModel(),
+        )
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
