@@ -7,13 +7,13 @@ GOOGLE_API_KEY = "AIzaSyCOZuAp-t-l9IIDRNZwdujv1CbIlIshnTA"
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-pro')
 
-router = APIRouter()  # Cambiar de app = FastAPI() a router = APIRouter()
+router = APIRouter()
 
 class ChatInput(BaseModel):
     signal: str = None
     question: str
 
-@router.post("/chatbot")  # Cambiar de @app.post a @router.post
+@router.post("/chatbot")
 async def chatbot(input: ChatInput):
     if input.signal:
         prompt = f"""Estás actuando como un experto en señales de tránsito. 
@@ -25,5 +25,9 @@ async def chatbot(input: ChatInput):
         El usuario pregunta: {input.question}.
         Responde según la normativa de tránsito del Ecuador o el COIP si es posible.
         """
-    response = model.generate_content(prompt)
-    return {"answer": response.text}
+    
+    try:
+        response = model.generate_content(prompt)
+        return {"answer": response.text}
+    except Exception as e:
+        return {"error": f"Error al generar respuesta: {str(e)}"}
