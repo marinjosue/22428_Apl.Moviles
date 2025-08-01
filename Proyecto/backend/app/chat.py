@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import APIRouter
 from pydantic import BaseModel
 import google.generativeai as genai
 import os
@@ -6,13 +6,14 @@ import os
 GOOGLE_API_KEY = "AIzaSyCOZuAp-t-l9IIDRNZwdujv1CbIlIshnTA"
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-pro')
-app = FastAPI()
+
+router = APIRouter()  # Cambiar de app = FastAPI() a router = APIRouter()
 
 class ChatInput(BaseModel):
     signal: str = None
     question: str
 
-@app.post("/chatbot")
+@router.post("/chatbot")  # Cambiar de @app.post a @router.post
 async def chatbot(input: ChatInput):
     if input.signal:
         prompt = f"""Estás actuando como un experto en señales de tránsito. 
