@@ -7,21 +7,43 @@ import '../models/traffic_sign.dart';
 
 class BackendService {
   Future<String> preguntarMulta(String pregunta, {String? signal}) async {
-    final body = {
-      'question': pregunta,
-      'signal': signal, // Puede ser null si no hay señal detectada
-    };
+    try {
+      // Solo incluir 'signal' si no es null
+      final Map<String, dynamic> body = {
+        'question': pregunta,
+      };
+      
+      if (signal != null) {
+        body['signal'] = signal;
+      }
 
-    final response = await http.post(
-      Uri.parse('$kBaseUrl/chatbot'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
-    );
-    
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body)['answer'];
+      print('Enviando solicitud a: $kBaseUrl/chatbot');
+      print('Body: $body');
+
+      final response = await http.post(
+        Uri.parse('$kBaseUrl/chatbot'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      ).timeout(
+        Duration(seconds: 60), // Aumentar timeout a 60 segundos
+        onTimeout: () {
+          throw Exception('Tiempo de espera agotado. El servidor se está tardando más de lo esperado.');
+        },
+      );
+      
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData['answer'] ?? 'No se recibió respuesta del servidor';
+      } else {
+        throw Exception('Error del servidor: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error en preguntarMulta: $e');
+      throw Exception('Error de conexión: $e');
     }
-    throw Exception('Error consultando backend');
   }
 
   Future<List<Map<String, dynamic>>> getHistory(int userId) async {

@@ -5,9 +5,11 @@ import '../services/backend_service.dart';
 class ChatViewModel extends ChangeNotifier {
   final List<ChatMessage> messages = [];
   bool isLoading = false;
+  String _loadingMessage = 'Procesando...';
   String? _currentSignal; // Almacena la señal actual para el contexto
 
   String? get currentSignal => _currentSignal;
+  String get loadingMessage => _loadingMessage;
 
   void addInitialMessage(String signName) {
     messages.clear(); // Limpiar mensajes anteriores
@@ -40,28 +42,54 @@ class ChatViewModel extends ChangeNotifier {
       timestamp: DateTime.now(),
     ));
     isLoading = true;
+    _loadingMessage = 'Enviando consulta...';
     notifyListeners();
 
-    try {
-      final respuesta = await BackendService().preguntarMulta(
-        userText, 
-        signal: _currentSignal, // Envía la señal actual como contexto
-      );
-      
-      messages.add(ChatMessage(
-        text: respuesta,
-        sender: MessageSender.bot,
-        timestamp: DateTime.now(),
-      ));
-    } catch (e) {
-      messages.add(ChatMessage(
-        text: 'Lo siento, hubo un error al procesar tu consulta. Por favor, intenta nuevamente.',
-        sender: MessageSender.bot,
-        timestamp: DateTime.now(),
-      ));
+    int maxRetries = 3;
+    int currentTry = 1;
+
+    while (currentTry <= maxRetries) {
+      try {
+        if (currentTry > 1) {
+          _loadingMessage = 'Reintentando... (${currentTry}/$maxRetries)';
+          notifyListeners();
+          // Esperar un poco antes de reintentar
+          await Future.delayed(Duration(seconds: 2));
+        } else {
+          _loadingMessage = 'Procesando con IA...';
+          notifyListeners();
+        }
+
+        final respuesta = await BackendService().preguntarMulta(
+          userText, 
+          signal: _currentSignal, // Envía la señal actual como contexto
+        );
+        
+        messages.add(ChatMessage(
+          text: respuesta,
+          sender: MessageSender.bot,
+          timestamp: DateTime.now(),
+        ));
+        break; // Salir del bucle si fue exitoso
+        
+      } catch (e) {
+        print('Error en sendMessage (intento $currentTry): $e');
+        
+        if (currentTry == maxRetries) {
+          // Último intento fallido
+          messages.add(ChatMessage(
+            text: 'Lo siento, el servidor está tardando más de lo esperado. Por favor, verifica tu conexión a internet e intenta nuevamente en unos momentos.',
+            sender: MessageSender.bot,
+            timestamp: DateTime.now(),
+          ));
+        } else {
+          currentTry++;
+        }
+      }
     }
 
     isLoading = false;
-    notifyListeners();
+    _loadingMessage = 'Procesando...';
+    notifyListeners();  
   }
 }

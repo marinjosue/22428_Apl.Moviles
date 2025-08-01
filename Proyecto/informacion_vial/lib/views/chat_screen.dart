@@ -110,7 +110,12 @@ class _ChatScreenState extends State<ChatScreen> {
                     valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
                   ),
                   SizedBox(width: 10),
-                  Text('Procesando...', style: TextStyle(color: Colors.grey[600])),
+                  Expanded(
+                    child: Text(
+                      vm.loadingMessage, 
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -170,6 +175,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _sendMessage(ChatViewModel vm, String text) {
     if (text.isNotEmpty && !vm.isLoading) {
+      print('Enviando mensaje: $text'); // Para debug
       vm.sendMessage(text);
       _controller.clear();
     }
