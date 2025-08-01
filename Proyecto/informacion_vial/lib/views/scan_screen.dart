@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/scan_viewmodel.dart';
+import '../widgets/platform_warning_widget.dart';
 import 'realtime_detection_screen.dart';
 
 class ScanScreen extends StatelessWidget {
@@ -19,7 +20,22 @@ class ScanScreen extends StatelessWidget {
       final ui.Image image = frame.image;
 
       final viewModel = context.read<ScanViewModel>();
-      await viewModel.detectSignal(image);
+      await viewModel.detectSignal(image, context);
+    }
+  }
+
+  Future<void> _pickImageFromGallery(BuildContext context) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      final ui.Image image = frame.image;
+
+      final viewModel = context.read<ScanViewModel>();
+      await viewModel.detectSignal(image, context);
     }
   }
 
@@ -27,10 +43,12 @@ class ScanScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = context.watch<ScanViewModel>();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detección de Señales'),
-      ),
+    return PlatformWarningWidget(
+      error: vm.modelError,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Detección de Señales'),
+        ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -117,19 +135,32 @@ class ScanScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              // Botón para escanear foto
+              // Botón para escanear foto desde cámara
               ElevatedButton.icon(
                 icon: const Icon(Icons.camera),
-                label: const Text('Escanear desde foto'),
+                label: const Text('Tomar foto'),
                 onPressed: () => _scanImage(context),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Botón para cargar imagen desde galería
+              ElevatedButton.icon(
+                icon: const Icon(Icons.photo_library),
+                label: const Text('Cargar desde galería'),
+                onPressed: () => _pickImageFromGallery(context),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 50),
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
                 ),
               ),
             ],
           ),
         ),
       ),
-    );
+      ), // Cierre del Scaffold
+    ); // Cierre del PlatformWarningWidget
   }
 }

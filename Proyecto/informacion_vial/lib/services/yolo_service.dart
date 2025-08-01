@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'dart:io' show Platform;
 
 import 'package:flutter/services.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -17,6 +18,13 @@ class YoloService {
   Future<void> loadModel() async {
     try {
       print('🔄 Iniciando carga del modelo TensorFlow Lite...');
+      
+      // Verificar plataforma
+      if (Platform.isWindows) {
+        print('⚠️ ATENCIÓN: Ejecutándose en Windows');
+        print('⚠️ TensorFlow Lite tiene limitaciones en Flutter Windows');
+        print('⚠️ Se recomienda usar Android o iOS para mejor soporte');
+      }
       
       // Método 1: Cargar desde ByteData (recomendado para TensorFlow Lite)
       try {
@@ -44,7 +52,15 @@ class YoloService {
             print('✅ Intérprete creado sin prefijo assets/');
           } catch (e3) {
             print('❌ Error sin prefijo: $e3');
-            throw Exception('No se pudo cargar el modelo con ningún método. ByteData: $e1, Asset directo: $e2, Sin prefijo: $e3');
+            
+            // Mensaje específico para Windows
+            if (Platform.isWindows) {
+              throw Exception('TensorFlow Lite no está completamente soportado en Flutter Windows. '
+                  'Por favor, usa un dispositivo Android o emulador para probar la funcionalidad de IA. '
+                  'Error técnico: La librería nativa libtensorflowlite_c-win.dll no se puede cargar.');
+            } else {
+              throw Exception('No se pudo cargar el modelo con ningún método. ByteData: $e1, Asset directo: $e2, Sin prefijo: $e3');
+            }
           }
         }
       }
@@ -150,11 +166,12 @@ class YoloService {
     );
 
     // Redimensionar la imagen a 640x640 (tamaño de entrada del modelo)
+    // Usar interpolación cúbica para mejor calidad
     final resizedImage = imageLib.copyResize(
       originalImage,
       width: inputSize,
       height: inputSize,
-      interpolation: imageLib.Interpolation.linear,
+      interpolation: imageLib.Interpolation.cubic, // Cambio a cúbica para mejor calidad
     );
     
     print('🔄 Imagen redimensionada a: ${resizedImage.width}x${resizedImage.height}');
@@ -292,6 +309,17 @@ class YoloService {
       print('❌ Clasificación falló: $e');
     }
     
+    // Formato adicional: Buscar la mejor detección sin umbrales estrictos
+    try {
+      final results = _processBestOverall(outputData);
+      if (results.isNotEmpty) {
+        print('✅ Mejor detección general: ${results.length} resultados');
+        return results;
+      }
+    } catch (e) {
+      print('❌ Mejor detección general falló: $e');
+    }
+    
     // Formato 4: Vector plano
     try {
       final results = _processAsFlattened(outputData);
@@ -319,8 +347,8 @@ class YoloService {
     print('📊 Batch size: ${outputData.length}, Detecciones: ${batch.length}');
     
     final detectedSigns = <String>[];
-    const double confidenceThreshold = 0.001; // Reducido drásticamente 
-    const double classThreshold = 0.0003; // Reducido para detectar las señales actuales
+    const double confidenceThreshold = 0.01; // Bajamos para capturar más detecciones
+    const double classThreshold = 0.01;      // Bajamos para capturar más detecciones
     
     print('🔍 Procesando detecciones con umbrales: obj=$confidenceThreshold, class=$classThreshold');
     
@@ -414,6 +442,16 @@ class YoloService {
     
     print('🎯 YOLOv5 Standard: ${detectedSigns.length} señales detectadas');
     
+    // Si no encontramos nada con los umbrales altos, buscar la mejor detección global
+    if (detectedSigns.isEmpty) {
+      print('🔍 === BUSCANDO LA MEJOR DETECCIÓN GLOBAL ===');
+      final bestDetection = _findBestGlobalDetection(batch);
+      if (bestDetection != null) {
+        detectedSigns.add(bestDetection);
+        print('✅ MEJOR DETECCIÓN GLOBAL: $bestDetection');
+      }
+    }
+    
     // Si no encontramos nada, mostrar las mejores detecciones para debugging
     if (detectedSigns.isEmpty) {
       print('🔍 === ANÁLISIS DE MEJORES DETECCIONES ===');
@@ -498,6 +536,64 @@ class YoloService {
     
     print('🔄 YOLO Transpuesto: ${detectedSigns.length} señales detectadas');
     return detectedSigns;
+  }
+  
+  String? _findBestGlobalDetection(List batch) {
+    print('🎯 Buscando la mejor detección global en ${batch.length} detecciones...');
+    
+    double bestConfidence = 0.0;
+    String? bestLabel;
+    int bestIndex = -1;
+    
+    for (int i = 0; i < batch.length; i++) {
+      if (batch[i] is! List) continue;
+      
+      final detection = batch[i] as List;
+      if (detection.length < 48) continue;
+      
+      try {
+        final double objectness = (detection[4] as num).toDouble();
+        if (objectness <= 0.0) continue;
+        
+        // Buscar la mejor clase para esta detección
+        double maxClassScore = 0.0;
+        int bestClassIndex = -1;
+        
+        for (int j = 5; j < 48; j++) {
+          final double classScore = (detection[j] as num).toDouble();
+          if (classScore > maxClassScore) {
+            maxClassScore = classScore;
+            bestClassIndex = j - 5;
+          }
+        }
+        
+        // Calcular confianza final
+        final double finalConfidence = objectness * maxClassScore;
+        
+        // Si esta es la mejor hasta ahora, guardarla
+        if (finalConfidence > bestConfidence && bestClassIndex >= 0 && bestClassIndex < _labels.length) {
+          bestConfidence = finalConfidence;
+          bestLabel = _labels[bestClassIndex];
+          bestIndex = i;
+        }
+        
+      } catch (e) {
+        // Ignorar errores en detecciones individuales
+      }
+    }
+    
+    if (bestLabel != null) {
+      print('🏆 MEJOR DETECCIÓN ENCONTRADA:');
+      print('   Índice: $bestIndex');
+      print('   Clase: $bestLabel');
+      print('   Confianza: ${bestConfidence.toStringAsFixed(6)}');
+      print('   Umbral mínimo usado: Sin umbral (se toma la mejor)');
+      
+      return bestLabel;
+    } else {
+      print('❌ No se encontró ninguna detección válida');
+      return null;
+    }
   }
   
   void _findBestDetections(List batch) {
@@ -739,6 +835,86 @@ class YoloService {
       
     } catch (e) {
       print('❌ Error en processAsClassification: $e');
+    }
+    
+    return results;
+  }
+  
+  List<String> _processBestOverall(List outputData) {
+    print('🎯 Procesando para encontrar la MEJOR detección global...');
+    final results = <String>[];
+    
+    try {
+      if (outputData.isEmpty || outputData[0] is! List) {
+        throw Exception('Formato inválido para procesamiento global');
+      }
+      
+      final batch = outputData[0] as List;
+      print('📊 Analizando ${batch.length} detecciones para encontrar la mejor');
+      
+      double bestConfidence = 0.0;
+      String? bestLabel;
+      Map<String, double>? bestStats;
+      
+      for (int i = 0; i < batch.length; i++) {
+        if (batch[i] is! List) continue;
+        
+        final detection = batch[i] as List;
+        if (detection.length < 48) continue;
+        
+        try {
+          final double objectness = (detection[4] as num).toDouble();
+          if (objectness <= 0.0) continue;
+          
+          // Buscar la mejor clase
+          double maxClassScore = 0.0;
+          int bestClassIndex = -1;
+          
+          for (int j = 5; j < 48; j++) {
+            final double classScore = (detection[j] as num).toDouble();
+            if (classScore > maxClassScore) {
+              maxClassScore = classScore;
+              bestClassIndex = j - 5;
+            }
+          }
+          
+          if (bestClassIndex >= 0 && bestClassIndex < _labels.length) {
+            final double finalConfidence = objectness * maxClassScore;
+            
+            if (finalConfidence > bestConfidence) {
+              bestConfidence = finalConfidence;
+              bestLabel = _labels[bestClassIndex];
+              bestStats = {
+                'objectness': objectness,
+                'classScore': maxClassScore,
+                'finalConfidence': finalConfidence,
+                'detectionIndex': i.toDouble(),
+                'classIndex': bestClassIndex.toDouble(),
+              };
+            }
+          }
+          
+        } catch (e) {
+          // Ignorar errores individuales
+        }
+      }
+      
+      // Si encontramos algo, añadirlo independientemente del umbral
+      if (bestLabel != null && bestStats != null) {
+        results.add(bestLabel);
+        
+        print('🏆 MEJOR DETECCIÓN GLOBAL ENCONTRADA:');
+        print('   Clase: $bestLabel');
+        print('   Objectness: ${bestStats['objectness']!.toStringAsFixed(6)}');
+        print('   Class Score: ${bestStats['classScore']!.toStringAsFixed(6)}');
+        print('   Confianza Final: ${bestStats['finalConfidence']!.toStringAsFixed(6)}');
+        print('   Índice de Detección: ${bestStats['detectionIndex']!.toInt()}');
+        print('   Índice de Clase: ${bestStats['classIndex']!.toInt()}');
+        print('   🎯 Esta es la MEJOR predicción del modelo para tu imagen');
+      }
+      
+    } catch (e) {
+      print('❌ Error en procesamiento global: $e');
     }
     
     return results;

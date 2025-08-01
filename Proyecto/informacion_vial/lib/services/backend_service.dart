@@ -6,14 +6,20 @@ import '../models/traffic_sign.dart';
 
 
 class BackendService {
-  Future<String> preguntarMulta(String pregunta) async {
+  Future<String> preguntarMulta(String pregunta, {String? signal}) async {
+    final body = {
+      'question': pregunta,
+      'signal': signal, // Puede ser null si no hay señal detectada
+    };
+
     final response = await http.post(
-      Uri.parse('$kBaseUrl/chat'),
+      Uri.parse('$kBaseUrl/chatbot'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'message': pregunta}),
+      body: jsonEncode(body),
     );
+    
     if (response.statusCode == 200) {
-      return jsonDecode(response.body)['response'];
+      return jsonDecode(response.body)['answer'];
     }
     throw Exception('Error consultando backend');
   }

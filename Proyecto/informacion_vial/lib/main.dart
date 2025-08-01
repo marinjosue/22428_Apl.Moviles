@@ -9,6 +9,7 @@ import 'views/login_screen.dart';
 import 'views/register_screen.dart';
 import 'views/home_screen.dart';
 import 'views/chat_screen.dart';
+import 'views/realtime_detection_screen.dart';
 import 'utils/constants.dart';
 
 void main() async {
@@ -28,23 +29,24 @@ void main() async {
   );
 }
 
-
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: kRouteLogin,
+      title: 'Información Vial',
+      initialRoute: kRouteHome, // Cambiar a HomeScreen para desarrollo
+      // initialRoute: kRouteLogin, // Usar esto en producción
       theme: ThemeData(
         primaryColor: kPrimaryColor,
         colorScheme: ColorScheme.fromSeed(seedColor: kPrimaryColor),
         useMaterial3: true,
       ),
       routes: {
-        kRouteLogin: (_) => LoginScreen(),
-        kRouteRegister: (_) => RegisterScreen(),
-        kRouteScan: (_) => HomeScreen(),
-        kRouteChat: (_) => ChatScreen(),
+        kRouteLogin: (context) => LoginScreen(),
+        kRouteRegister: (context) => RegisterScreen(),
+        kRouteHome: (context) => HomeScreen(),
+        kRouteScan: (context) => RealtimeDetectionScreen(),
+        kRouteChat: (context) => ChatScreen(),
       },
     );
   }

@@ -1,15 +1,28 @@
-from fastapi import APIRouter
-from app.schemas import ChatRequest, ChatResponse
+from fastapi import FastAPI
+from pydantic import BaseModel
+import google.generativeai as genai
+import os
 
-router = APIRouter()
+GOOGLE_API_KEY = "AIzaSyCOZuAp-t-l9IIDRNZwdujv1CbIlIshnTA"
+genai.configure(api_key=GOOGLE_API_KEY)
+model = genai.GenerativeModel('gemini-pro')
+app = FastAPI()
 
-@router.post("/chat", response_model=ChatResponse)
-def chat_educativo(req: ChatRequest):
-    # Lógica real: consulta base legal, embeddings o IA.
-    # Demo: respuesta estática.
-    if "PARE" in req.message.upper():
-        resp = ("No respetar la señal de PARE es una infracción grave. "
-                "Multa: 30% SBU y reducción de 6 puntos en la licencia.")
+class ChatInput(BaseModel):
+    signal: str = None
+    question: str
+
+@app.post("/chatbot")
+async def chatbot(input: ChatInput):
+    if input.signal:
+        prompt = f"""Estás actuando como un experto en señales de tránsito. 
+        La señal detectada es: {input.signal}. El usuario pregunta: {input.question}.
+        Responde según la normativa de tránsito del Ecuador o el COIP si es posible.
+        """
     else:
-        resp = "Consulte el COIP para más detalles sobre esta señal."
-    return ChatResponse(response=resp)
+        prompt = f"""Estás actuando como un experto en señales de tránsito. 
+        El usuario pregunta: {input.question}.
+        Responde según la normativa de tránsito del Ecuador o el COIP si es posible.
+        """
+    response = model.generate_content(prompt)
+    return {"answer": response.text}

@@ -1,6 +1,10 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import '../services/yolo_service.dart';
+import '../models/traffic_sign.dart';
+import '../utils/dialogs.dart';
+import '../utils/constants.dart';
+
 class ScanViewModel extends ChangeNotifier {
   final YoloService _yoloService = YoloService();
   String? _detectedSignal;
@@ -28,7 +32,7 @@ class ScanViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> detectSignal(ui.Image image) async {
+  Future<void> detectSignal(ui.Image image, BuildContext context) async {
     _isLoading = true;
     _detectedSignal = null;
     notifyListeners();
@@ -44,6 +48,24 @@ class ScanViewModel extends ChangeNotifier {
       if (results.isNotEmpty) {
         _detectedSignal = results.first;
         print('✅ Señal detectada: $_detectedSignal');
+        
+        // Mostrar modal de confirmación
+        final shouldNavigateToChat = await showSignalDetectedDialog(context, _detectedSignal!);
+        
+        if (shouldNavigateToChat == true) {
+          // Crear objeto TrafficSign y navegar al chat
+          final trafficSign = TrafficSign(
+            name: _detectedSignal!,
+            type: "detected", // Tipo por defecto
+            imageUrl: "", // URL vacía por ahora
+          );
+          
+          Navigator.pushNamed(
+            context,
+            kRouteChat,
+            arguments: trafficSign,
+          );
+        }
       } else {
         _detectedSignal = null;
         print('⚠️ No se detectó ninguna señal.');

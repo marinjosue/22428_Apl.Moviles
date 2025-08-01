@@ -6,6 +6,7 @@ const String kBaseUrl = 'https://two2428-apl-moviles.onrender.com';
 // Rutas nombradas
 const String kRouteLogin = '/login';
 const String kRouteRegister = '/register';
+const String kRouteHome = '/home';
 const String kRouteScan = '/scan';
 const String kRouteChat = '/chat';
 const String kRouteHistory = '/history';

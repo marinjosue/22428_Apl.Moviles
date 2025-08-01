@@ -81,7 +81,7 @@ class _RealtimeDetectionScreenState extends State<RealtimeDetectionScreen> {
       final ui.Image uiImage = frame.image;
 
       final viewModel = context.read<ScanViewModel>();
-      await viewModel.detectSignal(uiImage);
+      await viewModel.detectSignal(uiImage, context);
     } catch (e) {
       print('Error en detección en tiempo real: $e');
     } finally {
