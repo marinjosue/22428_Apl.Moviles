@@ -8,3 +8,6 @@ passlib[bcrypt]
 pydantic
 PyJWT
 python-jose[cryptography]
+google-generativeai
+google-api-python-client
+google-auth
