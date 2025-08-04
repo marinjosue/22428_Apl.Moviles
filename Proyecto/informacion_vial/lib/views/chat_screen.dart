@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import '../viewmodels/chat_viewmodel.dart';
 import '../models/chat_message.dart';
 import '../models/traffic_sign.dart';
@@ -7,8 +8,9 @@ import '../utils/constants.dart';
 
 class ChatScreen extends StatefulWidget {
   final TrafficSign? initialSignal;
+  final File? capturedImage; // Añadir imagen capturada
   
-  const ChatScreen({Key? key, this.initialSignal}) : super(key: key);
+  const ChatScreen({Key? key, this.initialSignal, this.capturedImage}) : super(key: key);
   
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -17,6 +19,12 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   bool _initialMessageSent = false;
   final TextEditingController _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // No limpiar mensajes automáticamente al inicializar
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +37,11 @@ class _ChatScreenState extends State<ChatScreen> {
     // Si hay señal y no se ha enviado el mensaje inicial, agrégalo
     if (sign != null && !_initialMessageSent) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        vm.addInitialMessage(sign.name);
+        vm.addInitialMessage(sign.name, widget.capturedImage);
         _initialMessageSent = true;
       });
-    } else if (sign == null && !_initialMessageSent) {
-      // Si no hay señal, inicia una conversación general
+    } else if (sign == null && !_initialMessageSent && vm.messages.isEmpty) {
+      // Si no hay señal y no hay mensajes, inicia una conversación general
       WidgetsBinding.instance.addPostFrameCallback((_) {
         vm.startNewConversation();
         _initialMessageSent = true;
@@ -50,21 +58,41 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: kPrimaryColor,
         foregroundColor: Colors.white,
         actions: [
-          if (sign != null)
-            IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: () {
-                vm.startNewConversation();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Conversación reiniciada')),
-                );
-              },
-              tooltip: 'Nueva conversación',
-            ),
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              vm.startNewConversation();
+              setState(() {
+                _initialMessageSent = false;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Conversación reiniciada')),
+              );
+            },
+            tooltip: 'Nueva conversación',
+          ),
         ],
       ),
       body: Column(
         children: [
+          // Mostrar imagen capturada si existe
+          if (widget.capturedImage != null)
+            Container(
+              width: double.infinity,
+              height: 200,
+              margin: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: kPrimaryColor.withOpacity(0.3)),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  widget.capturedImage!,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.all(8),

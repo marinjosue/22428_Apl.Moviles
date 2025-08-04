@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import '../views/scan_screen.dart';
 import '../views/chat_screen.dart';
 import '../views/history_screen.dart';
@@ -16,6 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   TrafficSign? _chatSignal;
+  File? _capturedImage; // Agregar imagen capturada
   
   @override
   void didChangeDependencies() {
@@ -25,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
       _chatSignal = args['chatSignal'] as TrafficSign?;
+      _capturedImage = args['capturedImage'] as File?; // Obtener imagen
       final initialTab = args['initialTab'] as int?;
       if (initialTab != null) {
         setState(() {
@@ -36,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> get _screens => [
     ScanScreen(),
-    ChatScreen(initialSignal: _chatSignal),
+    ChatScreen(initialSignal: _chatSignal, capturedImage: _capturedImage),
     HistoryScreen(),
   ];
 
@@ -53,24 +56,68 @@ class _HomeScreenState extends State<HomeScreen> {
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
-                color: kPrimaryColor,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [kPrimaryColor, kPrimaryColor.withOpacity(0.8)],
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Información del usuario
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.white,
+                        radius: 20,
+                        child: Icon(
+                          Icons.person,
+                          color: kPrimaryColor,
+                          size: 24,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              UserService.instance.currentUser?.name ?? 'Usuario',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              UserService.instance.currentUser?.email ?? 'email@ejemplo.com',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 12),
                   Text(
                     kAppName,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  SizedBox(height: 10),
                   Text(
                     'Tu asistente para señales de tránsito',
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 16,
+                      fontSize: 13,
                     ),
                   ),
                 ],

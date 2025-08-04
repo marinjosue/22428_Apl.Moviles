@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +21,7 @@ class ScanScreen extends StatelessWidget {
       final ui.Image image = frame.image;
 
       final viewModel = context.read<ScanViewModel>();
-      await viewModel.detectSignal(image, context);
+      await viewModel.detectSignal(image, context, File(pickedFile.path)); // Pasar archivo
     }
   }
 
@@ -35,7 +36,7 @@ class ScanScreen extends StatelessWidget {
       final ui.Image image = frame.image;
 
       final viewModel = context.read<ScanViewModel>();
-      await viewModel.detectSignal(image, context);
+      await viewModel.detectSignal(image, context, File(pickedFile.path)); // Pasar archivo
     }
   }
 

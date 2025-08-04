@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import ALLOWED_ORIGINS, PORT
 from app.auth import router as auth_router
-from app.signals import router as signals_router
 from app.chat import router as chat_router
 from app.history import router as history_router
 from app.database import Base, engine
@@ -22,7 +21,6 @@ app.add_middleware(
 
 # Rutas
 app.include_router(auth_router)
-app.include_router(signals_router)
 app.include_router(chat_router)
 app.include_router(history_router)
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import '../models/chat_message.dart';
 import '../services/backend_service.dart';
 import '../services/user_service.dart';
@@ -8,31 +9,44 @@ class ChatViewModel extends ChangeNotifier {
   bool isLoading = false;
   String _loadingMessage = 'Procesando...';
   String? _currentSignal; // Almacena la señal actual para el contexto
+  File? _capturedImage; // Almacena la imagen capturada
 
   String? get currentSignal => _currentSignal;
   String get loadingMessage => _loadingMessage;
+  File? get capturedImage => _capturedImage;
 
-  void addInitialMessage(String signName) {
-    messages.clear(); // Limpiar mensajes anteriores
-    _currentSignal = signName; // Guardar la señal para futuras consultas
-    
-    messages.add(ChatMessage(
-      text: 'Has detectado una señal de ${signName.toUpperCase()}. ¿Qué te gustaría saber sobre esta señal? Puedo ayudarte con información sobre regulaciones, multas por no respetarla, o cualquier otra consulta relacionada.',
-      sender: MessageSender.bot,
-      timestamp: DateTime.now(),
-    ));
-    notifyListeners();
+  void addInitialMessage(String signName, [File? image]) {
+    // No limpiar mensajes si ya existen para la misma señal
+    if (messages.isEmpty || _currentSignal != signName) {
+      messages.clear(); // Solo limpiar si es una señal diferente
+      _currentSignal = signName; // Guardar la señal para futuras consultas
+      _capturedImage = image; // Guardar la imagen
+      
+      messages.add(ChatMessage(
+        text: 'Has detectado una señal de ${signName.toUpperCase()}. ¿Qué te gustaría saber sobre esta señal? Puedo ayudarte con información sobre regulaciones, multas por no respetarla, o cualquier otra consulta relacionada.',
+        sender: MessageSender.bot,
+        timestamp: DateTime.now(),
+      ));
+      notifyListeners();
+    }
   }
 
   void startNewConversation() {
     messages.clear();
     _currentSignal = null; // No hay señal específica
+    _capturedImage = null; // Limpiar imagen
     
     messages.add(ChatMessage(
       text: '¡Hola! Soy tu asistente de señales de tránsito. Puedes preguntarme sobre cualquier señal de tráfico, regulaciones viales del Ecuador, multas, o cualquier consulta relacionada con el tránsito. ¿En qué puedo ayudarte?',
       sender: MessageSender.bot,
       timestamp: DateTime.now(),
     ));
+    notifyListeners();
+  }
+
+  // Método para preservar la conversación
+  void preserveConversation() {
+    // No hacer nada - mantener mensajes existentes
     notifyListeners();
   }
 
@@ -75,13 +89,25 @@ class ChatViewModel extends ChangeNotifier {
         // Guardar en historial si hay usuario logueado
         final user = UserService.instance.currentUser;
         if (user != null) {
-          await BackendService().addHistory(
-            userId: user.id!,
-            signalName: _currentSignal,
-            question: userText,
-            response: respuesta,
-            timestamp: DateTime.now(),
-          );
+          print('🔄 Intentando guardar en historial: userId=${user.id}, signal=$_currentSignal, question=$userText');
+          try {
+            final saved = await BackendService().addHistory(
+              userId: user.id!,
+              signalName: _currentSignal,
+              question: userText,
+              response: respuesta,
+              timestamp: DateTime.now(),
+            );
+            if (saved) {
+              print('✅ Conversación guardada en historial exitosamente');
+            } else {
+              print('❌ Error al guardar conversación en historial');
+            }
+          } catch (e) {
+            print('❌ Excepción al guardar en historial: $e');
+          }
+        } else {
+          print('⚠️ No hay usuario logueado, no se guardará en historial');
         }
         
         break; // Salir del bucle si fue exitoso

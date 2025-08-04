@@ -22,20 +22,6 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
-class SignalQuery(BaseModel):
-    name: str
-
-class SignalOut(BaseModel):
-    id: int
-    name: str
-    type: str
-    description: Optional[str]
-    image_url: Optional[str]
-    legal_info: Optional[str]
-    penalty: Optional[str]
-    class Config:
-        from_attributes = True
-
 class ChatRequest(BaseModel):
     user_id: int
     message: str
@@ -43,9 +29,17 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
 
+class HistoryIn(BaseModel):
+    user_id: int
+    signal_name: Optional[str]
+    question: str
+    response: str
+    timestamp: datetime
+
 class HistoryOut(BaseModel):
     id: int
-    signal: Optional[SignalOut]
+    user_id: int
+    signal_name: Optional[str]
     question: str
     response: str
     timestamp: datetime

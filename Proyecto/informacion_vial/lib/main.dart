@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Información Vial',
+      title: 'Asistente Vial',
       initialRoute: UserService.instance.isLoggedIn ? kRouteHome : kRouteLogin,
       theme: ThemeData(
         primaryColor: kPrimaryColor,

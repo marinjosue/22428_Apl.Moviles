@@ -18,10 +18,10 @@ def get_history(user_id: int, db: Session = Depends(get_db)):
     return records
 
 @router.post("/history", response_model=schemas.HistoryOut)
-def add_history(item: schemas.HistoryOut, db: Session = Depends(get_db)):
+def add_history(item: schemas.HistoryIn, db: Session = Depends(get_db)):
     new_history = models.History(
-        user_id=item.user.id,
-        signal_id=item.signal.id if item.signal else None,
+        user_id=item.user_id,
+        signal_name=item.signal_name,
         question=item.question,
         response=item.response,
         timestamp=item.timestamp,

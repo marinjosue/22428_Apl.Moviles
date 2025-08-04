@@ -1,4 +1,5 @@
 import 'dart:ui' as ui;
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/yolo_service.dart';
 import '../models/traffic_sign.dart';
@@ -32,7 +33,7 @@ class ScanViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> detectSignal(ui.Image image, BuildContext context) async {
+  Future<void> detectSignal(ui.Image image, BuildContext context, [File? capturedImageFile]) async {
     _isLoading = true;
     _detectedSignal = null;
     notifyListeners();
@@ -66,7 +67,11 @@ class ScanViewModel extends ChangeNotifier {
           Navigator.pushReplacementNamed(
             context,
             kRouteHome,
-            arguments: {'chatSignal': trafficSign, 'initialTab': 1}, // Tab 1 es el chat
+            arguments: {
+              'chatSignal': trafficSign, 
+              'capturedImage': capturedImageFile, // Pasar la imagen capturada
+              'initialTab': 1
+            }, // Tab 1 es el chat
           );
         }
       } else {
