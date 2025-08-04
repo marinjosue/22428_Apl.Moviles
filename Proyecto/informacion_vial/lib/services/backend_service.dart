@@ -66,21 +66,28 @@ class BackendService {
   // Obtener información del usuario usando el token
   Future<User> getUserInfo(String token) async {
     try {
+      print('Obteniendo info del usuario desde: $kBaseUrl/me');
+      print('Token: ${token.substring(0, 20)}...');
+      
       final response = await http.get(
-        Uri.parse('$kBaseUrl/auth/me'),
+        Uri.parse('$kBaseUrl/me'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
       );
 
+      print('getUserInfo response status: ${response.statusCode}');
+      print('getUserInfo response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return User.fromJson(data);
       } else {
-        throw Exception('Error obteniendo información del usuario');
+        throw Exception('Error obteniendo información del usuario: ${response.statusCode}');
       }
     } catch (e) {
+      print('Error en getUserInfo: $e');
       throw Exception('Error de conexión: $e');
     }
   }

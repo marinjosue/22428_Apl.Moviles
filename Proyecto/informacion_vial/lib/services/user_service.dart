@@ -36,10 +36,13 @@ class UserService {
   
   Future<void> saveLoginResponse(LoginResponse loginResponse) async {
     try {
-      // Obtener información del usuario usando el token
+      print('Obteniendo información del usuario con token...');
+      // Obtener información del usuario usando el token desde el endpoint /me
       final user = await BackendService().getUserInfo(loginResponse.accessToken);
       await saveUserAndToken(user, loginResponse.accessToken);
+      print('Usuario guardado exitosamente: ${user.name}');
     } catch (e) {
+      print('Error obteniendo información del usuario: $e');
       throw Exception('Error obteniendo información del usuario: $e');
     }
   }
