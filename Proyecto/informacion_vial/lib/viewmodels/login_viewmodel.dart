@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../services/backend_service.dart';
+import '../services/user_service.dart';
 
 class LoginViewModel extends ChangeNotifier {
   String email = '';
@@ -11,12 +12,18 @@ class LoginViewModel extends ChangeNotifier {
     isLoading = true;
     error = null;
     notifyListeners();
-    final result = await AuthService().login(email, password);
-    isLoading = false;
-    if (!result) {
-      error = "Credenciales incorrectas";
+
+    try {
+      final loginResponse = await BackendService().login(email, password);
+      await UserService.instance.saveLoginResponse(loginResponse);
+      isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      error = e.toString().replaceFirst('Exception: ', '');
+      isLoading = false;
+      notifyListeners();
+      return false;
     }
-    notifyListeners();
-    return result;
   }
 }

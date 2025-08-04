@@ -3,6 +3,10 @@ import '../views/scan_screen.dart';
 import '../views/chat_screen.dart';
 import '../views/history_screen.dart';
 import '../utils/constants.dart';
+import '../models/traffic_sign.dart';
+import '../services/user_service.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/history_viewmodel.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -11,9 +15,28 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  final List<Widget> _screens = [
+  TrafficSign? _chatSignal;
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Obtener argumentos si los hay
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (args != null) {
+      _chatSignal = args['chatSignal'] as TrafficSign?;
+      final initialTab = args['initialTab'] as int?;
+      if (initialTab != null) {
+        setState(() {
+          _currentIndex = initialTab;
+        });
+      }
+    }
+  }
+
+  List<Widget> get _screens => [
     ScanScreen(),
-    ChatScreen(),
+    ChatScreen(initialSignal: _chatSignal),
     HistoryScreen(),
   ];
 
@@ -81,8 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: Icon(Icons.exit_to_app),
               title: Text('Cerrar sesión'),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
+                await UserService.instance.logout();
                 Navigator.pushReplacementNamed(context, kRouteLogin);
               },
             ),

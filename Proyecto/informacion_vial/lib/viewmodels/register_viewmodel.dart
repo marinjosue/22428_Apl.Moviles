@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../services/backend_service.dart';
+import '../services/user_service.dart';
 
 class RegisterViewModel extends ChangeNotifier {
   String email = '';
@@ -12,12 +13,20 @@ class RegisterViewModel extends ChangeNotifier {
     isLoading = true;
     error = null;
     notifyListeners();
-    final result = await AuthService().register(email, name, password);
-    isLoading = false;
-    if (!result) {
-      error = "Error en el registro";
+
+    try {
+      await BackendService().register(name, email, password);
+      // Después del registro, hacer login automáticamente
+      final loginResponse = await BackendService().login(email, password);
+      await UserService.instance.saveLoginResponse(loginResponse);
+      isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      error = e.toString().replaceFirst('Exception: ', '');
+      isLoading = false;
+      notifyListeners();
+      return false;
     }
-    notifyListeners();
-    return result;
   }
 }

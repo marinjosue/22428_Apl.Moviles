@@ -6,6 +6,10 @@ import '../models/traffic_sign.dart';
 import '../utils/constants.dart';
 
 class ChatScreen extends StatefulWidget {
+  final TrafficSign? initialSignal;
+  
+  const ChatScreen({Key? key, this.initialSignal}) : super(key: key);
+  
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -18,8 +22,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final vm = Provider.of<ChatViewModel>(context);
     
-    // Recibe la señal detectada como argumento (puede ser null)
-    final TrafficSign? sign = ModalRoute.of(context)?.settings.arguments as TrafficSign?;
+    // Priorizar initialSignal sobre arguments de la ruta
+    final TrafficSign? sign = widget.initialSignal ?? 
+        (ModalRoute.of(context)?.settings.arguments as TrafficSign?);
 
     // Si hay señal y no se ha enviado el mensaje inicial, agrégalo
     if (sign != null && !_initialMessageSent) {

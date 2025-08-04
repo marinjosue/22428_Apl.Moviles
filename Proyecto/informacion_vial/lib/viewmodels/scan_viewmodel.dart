@@ -53,17 +53,20 @@ class ScanViewModel extends ChangeNotifier {
         final shouldNavigateToChat = await showSignalDetectedDialog(context, _detectedSignal!);
         
         if (shouldNavigateToChat == true) {
-          // Crear objeto TrafficSign y navegar al chat
+          // Crear objeto TrafficSign y navegar al chat dentro del HomeScreen
           final trafficSign = TrafficSign(
             name: _detectedSignal!,
             type: "detected", // Tipo por defecto
             imageUrl: "", // URL vacía por ahora
           );
           
-          Navigator.pushNamed(
+          // En lugar de navegar a una nueva pantalla, vamos a la tab del chat en HomeScreen
+          // y pasamos la señal como argumento global
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          Navigator.pushReplacementNamed(
             context,
-            kRouteChat,
-            arguments: trafficSign,
+            kRouteHome,
+            arguments: {'chatSignal': trafficSign, 'initialTab': 1}, // Tab 1 es el chat
           );
         }
       } else {

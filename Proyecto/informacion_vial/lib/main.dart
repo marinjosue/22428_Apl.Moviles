@@ -11,9 +11,13 @@ import 'views/home_screen.dart';
 import 'views/chat_screen.dart';
 import 'views/realtime_detection_screen.dart';
 import 'utils/constants.dart';
+import 'services/user_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Cargar usuario guardado
+  await UserService.instance.loadUser();
   
   runApp(
     MultiProvider(
@@ -34,8 +38,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Información Vial',
-      initialRoute: kRouteHome, // Cambiar a HomeScreen para desarrollo
-      // initialRoute: kRouteLogin, // Usar esto en producción
+      initialRoute: UserService.instance.isLoggedIn ? kRouteHome : kRouteLogin,
       theme: ThemeData(
         primaryColor: kPrimaryColor,
         colorScheme: ColorScheme.fromSeed(seedColor: kPrimaryColor),

@@ -5,6 +5,7 @@ import os
 
 GOOGLE_API_KEY = "AIzaSyCOZuAp-t-l9IIDRNZwdujv1CbIlIshnTA"
 genai.configure(api_key=GOOGLE_API_KEY)
+
 model = genai.GenerativeModel('gemini-1.5-flash') 
 
 router = APIRouter()

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/chat_message.dart';
 import '../services/backend_service.dart';
+import '../services/user_service.dart';
 
 class ChatViewModel extends ChangeNotifier {
   final List<ChatMessage> messages = [];
@@ -70,6 +71,19 @@ class ChatViewModel extends ChangeNotifier {
           sender: MessageSender.bot,
           timestamp: DateTime.now(),
         ));
+
+        // Guardar en historial si hay usuario logueado
+        final user = UserService.instance.currentUser;
+        if (user != null) {
+          await BackendService().addHistory(
+            userId: user.id!,
+            signalName: _currentSignal,
+            question: userText,
+            response: respuesta,
+            timestamp: DateTime.now(),
+          );
+        }
+        
         break; // Salir del bucle si fue exitoso
         
       } catch (e) {
