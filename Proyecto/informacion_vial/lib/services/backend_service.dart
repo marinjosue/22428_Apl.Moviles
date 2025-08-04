@@ -221,4 +221,60 @@ class BackendService {
       return false;
     }
   }
+
+  // Eliminar un historial específico por ID
+  Future<bool> deleteHistory(int historyId) async {
+    try {
+      print('🗑️ Eliminando historial ID: $historyId');
+      
+      final response = await http.delete(
+        Uri.parse('$kBaseUrl/history/$historyId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      
+      print('📥 Respuesta eliminación individual:');
+      print('Status: ${response.statusCode}');
+      print('Body: ${response.body}');
+      
+      final success = response.statusCode == 200;
+      if (success) {
+        print('✅ Historial eliminado exitosamente');
+      } else {
+        print('❌ Error eliminando historial: ${response.statusCode} - ${response.body}');
+      }
+      
+      return success;
+    } catch (e) {
+      print('❌ Excepción eliminando historial: $e');
+      return false;
+    }
+  }
+
+  // Eliminar todos los historiales de un usuario
+  Future<bool> deleteAllHistory(int userId) async {
+    try {
+      print('🗑️ Eliminando todos los historiales del usuario: $userId');
+      
+      final response = await http.delete(
+        Uri.parse('$kBaseUrl/history/user/$userId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      
+      print('📥 Respuesta eliminación masiva:');
+      print('Status: ${response.statusCode}');
+      print('Body: ${response.body}');
+      
+      final success = response.statusCode == 200;
+      if (success) {
+        print('✅ Todos los historiales eliminados exitosamente');
+      } else {
+        print('❌ Error eliminando historiales: ${response.statusCode} - ${response.body}');
+      }
+      
+      return success;
+    } catch (e) {
+      print('❌ Excepción eliminando historiales: $e');
+      return false;
+    }
+  }
 }
