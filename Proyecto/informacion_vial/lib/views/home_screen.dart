@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
 import '../views/scan_screen.dart';
 import '../views/chat_screen.dart';
 import '../views/history_screen.dart';
 import '../utils/constants.dart';
 import '../models/traffic_sign.dart';
 import '../services/user_service.dart';
-import 'package:provider/provider.dart';
-import '../viewmodels/history_viewmodel.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -17,7 +14,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   TrafficSign? _chatSignal;
-  File? _capturedImage; // Agregar imagen capturada
   
   @override
   void didChangeDependencies() {
@@ -27,7 +23,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
       _chatSignal = args['chatSignal'] as TrafficSign?;
-      _capturedImage = args['capturedImage'] as File?; // Obtener imagen
       final initialTab = args['initialTab'] as int?;
       if (initialTab != null) {
         setState(() {
@@ -39,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> get _screens => [
     ScanScreen(),
-    ChatScreen(initialSignal: _chatSignal, capturedImage: _capturedImage),
+    ChatScreen(initialSignal: _chatSignal),
     HistoryScreen(),
   ];
 

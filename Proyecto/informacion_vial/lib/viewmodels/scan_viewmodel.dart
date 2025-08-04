@@ -12,10 +12,12 @@ class ScanViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool _modelLoaded = false;
   String? _modelError;
+  File? _lastCapturedImage; // Imagen capturada más reciente
 
   String? get detectedSignal => _detectedSignal;
   bool get isLoading => _isLoading;
   String? get modelError => _modelError;
+  File? get lastCapturedImage => _lastCapturedImage;
 
   Future<void> _ensureModelLoaded() async {
     if (!_modelLoaded) {
@@ -36,6 +38,7 @@ class ScanViewModel extends ChangeNotifier {
   Future<void> detectSignal(ui.Image image, BuildContext context, [File? capturedImageFile]) async {
     _isLoading = true;
     _detectedSignal = null;
+    _lastCapturedImage = capturedImageFile; // Guardar la imagen
     notifyListeners();
 
     try {
@@ -86,6 +89,11 @@ class ScanViewModel extends ChangeNotifier {
     }
 
     _isLoading = false;
+    notifyListeners();
+  }
+
+  void clearLastImage() {
+    _lastCapturedImage = null;
     notifyListeners();
   }
 

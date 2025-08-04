@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:io';
 import '../viewmodels/chat_viewmodel.dart';
 import '../models/chat_message.dart';
 import '../models/traffic_sign.dart';
@@ -8,9 +7,8 @@ import '../utils/constants.dart';
 
 class ChatScreen extends StatefulWidget {
   final TrafficSign? initialSignal;
-  final File? capturedImage; // Añadir imagen capturada
   
-  const ChatScreen({Key? key, this.initialSignal, this.capturedImage}) : super(key: key);
+  const ChatScreen({Key? key, this.initialSignal}) : super(key: key);
   
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -37,7 +35,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // Si hay señal y no se ha enviado el mensaje inicial, agrégalo
     if (sign != null && !_initialMessageSent) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        vm.addInitialMessage(sign.name, widget.capturedImage);
+        vm.addInitialMessage(sign.name);
         _initialMessageSent = true;
       });
     } else if (sign == null && !_initialMessageSent && vm.messages.isEmpty) {
@@ -75,24 +73,6 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       body: Column(
         children: [
-          // Mostrar imagen capturada si existe
-          if (widget.capturedImage != null)
-            Container(
-              width: double.infinity,
-              height: 200,
-              margin: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: kPrimaryColor.withOpacity(0.3)),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.file(
-                  widget.capturedImage!,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.all(8),

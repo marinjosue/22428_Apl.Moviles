@@ -47,6 +47,39 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Historial'),
+        backgroundColor: kPrimaryColor,
+        foregroundColor: Colors.white,
+        actions: [
+          if (vm.history.isNotEmpty) ...[
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: () => vm.loadHistory(),
+              tooltip: 'Actualizar',
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) async {
+                if (value == 'delete_all') {
+                  _showDeleteAllConfirmation(context, vm);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'delete_all',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_forever, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('Eliminar todo', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           await vm.loadHistory();
@@ -142,6 +175,37 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   ),
                                 ],
                               ),
+                              trailing: PopupMenuButton<String>(
+                                onSelected: (value) async {
+                                  if (value == 'view') {
+                                    _showResponseDialog(context, item);
+                                  } else if (value == 'delete') {
+                                    _showDeleteConfirmation(context, vm, item);
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(
+                                    value: 'view',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.visibility, color: kPrimaryColor),
+                                        SizedBox(width: 8),
+                                        Text('Ver respuesta'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.delete, color: Colors.red),
+                                        SizedBox(width: 8),
+                                        Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                               onTap: () {
                                 // Mostrar diálogo con la respuesta completa
                                 _showResponseDialog(context, item);
@@ -184,6 +248,76 @@ class _HistoryScreenState extends State<HistoryScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, HistoryViewModel vm, Map<String, dynamic> item) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Eliminar historial'),
+        content: Text('¿Estás seguro de que deseas eliminar esta consulta del historial?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final success = await vm.deleteHistory(item['id']);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success 
+                      ? 'Consulta eliminada exitosamente' 
+                      : 'Error al eliminar la consulta'
+                    ),
+                    backgroundColor: success ? Colors.green : Colors.red,
+                  ),
+                );
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAllConfirmation(BuildContext context, HistoryViewModel vm) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Eliminar todo el historial'),
+        content: Text('¿Estás seguro de que deseas eliminar TODAS las consultas del historial? Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final success = await vm.deleteAllHistory();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success 
+                      ? 'Todo el historial eliminado exitosamente' 
+                      : 'Error al eliminar el historial'
+                    ),
+                    backgroundColor: success ? Colors.green : Colors.red,
+                  ),
+                );
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text('Eliminar todo'),
           ),
         ],
       ),
