@@ -50,60 +50,70 @@ class ScanScreen extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Detección de Señales'),
         ),
-      body: Center(
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
               // Mostrar imagen capturada si existe
-              if (vm.lastCapturedImage != null) ...[
-                Container(
-                  width: double.infinity,
-                  height: 200,
-                  margin: EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.withOpacity(0.3)),
-                  ),
-                  child: Stack(
+              if (Provider.of<ScanViewModel>(context).lastCapturedImage != null) ...[
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.file(
-                          vm.lastCapturedImage!,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
+                      // Título de imagen capturada
+                      Text(
+                        'Imagen capturada',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[700],
                         ),
                       ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.6),
+                      SizedBox(height: 8),
+                      // Contenedor de la imagen con tamaño controlado
+                      Stack(
+                        alignment: Alignment.topRight,
+                        children: [
+                          // Imagen dentro de un contenedor con altura fija
+                          Container(
+                            height: 200, // Altura fija para evitar overflow
+                            width: double.infinity,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                Provider.of<ScanViewModel>(context).lastCapturedImage!,
+                                fit: BoxFit.cover, // Escalar para cubrir espacio disponible
+                              ),
+                            ),
+                          ),
+                          // Botón para cerrar la imagen
+                          Material(
+                            color: Colors.black.withOpacity(0.5),
                             borderRadius: BorderRadius.circular(20),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(20),
+                              onTap: () {
+                                Provider.of<ScanViewModel>(context, listen: false).clearLastImage();
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Icon(
+                                  Icons.close,
+                                  size: 20,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           ),
-                          child: IconButton(
-                            icon: Icon(Icons.close, color: Colors.white, size: 20),
-                            onPressed: () => vm.clearLastImage(),
-                            tooltip: 'Eliminar imagen',
-                          ),
-                        ),
+                        ],
                       ),
+                      SizedBox(height: 16),
                     ],
                   ),
                 ),
-                Text(
-                  'Imagen capturada',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 16),
               ],
               
               if (vm.isLoading)
@@ -166,7 +176,7 @@ class ScanScreen extends StatelessWidget {
                     const SizedBox(height: 20),
                   ],
                 ),
-              const Spacer(),
+              const SizedBox(height: 20),
               // Botón para detección en tiempo real
               ElevatedButton.icon(
                 icon: const Icon(Icons.videocam),
@@ -209,6 +219,7 @@ class ScanScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
         ),
       ),
       ), // Cierre del Scaffold

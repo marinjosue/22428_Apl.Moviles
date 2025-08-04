@@ -52,32 +52,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
         backgroundColor: kPrimaryColor,
         foregroundColor: Colors.white,
         actions: [
-          if (vm.history.isNotEmpty) ...[
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () => vm.loadHistory(),
+            tooltip: 'Actualizar',
+          ),
+          if (vm.history.isNotEmpty)
             IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: () => vm.loadHistory(),
-              tooltip: 'Actualizar',
+              icon: Icon(Icons.delete_forever),
+              onPressed: () => _showDeleteAllConfirmation(context, vm),
+              tooltip: 'Eliminar todo',
             ),
-            PopupMenuButton<String>(
-              onSelected: (value) async {
-                if (value == 'delete_all') {
-                  _showDeleteAllConfirmation(context, vm);
-                }
-              },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'delete_all',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_forever, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('Eliminar todo', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
         ],
       ),
       body: RefreshIndicator(
@@ -175,34 +160,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                   ),
                                 ],
                               ),
-                              trailing: PopupMenuButton<String>(
-                                onSelected: (value) async {
-                                  if (value == 'view') {
-                                    _showResponseDialog(context, item);
-                                  } else if (value == 'delete') {
-                                    _showDeleteConfirmation(context, vm, item);
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  PopupMenuItem(
-                                    value: 'view',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.visibility, color: kPrimaryColor),
-                                        SizedBox(width: 8),
-                                        Text('Ver respuesta'),
-                                      ],
-                                    ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.visibility, color: kPrimaryColor),
+                                    onPressed: () => _showResponseDialog(context, item),
+                                    tooltip: 'Ver respuesta',
                                   ),
-                                  PopupMenuItem(
-                                    value: 'delete',
-                                    child: Row(
-                                      children: [
-                                        Icon(Icons.delete, color: Colors.red),
-                                        SizedBox(width: 8),
-                                        Text('Eliminar', style: TextStyle(color: Colors.red)),
-                                      ],
-                                    ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete, color: Colors.red),
+                                    onPressed: () => _showDeleteConfirmation(context, vm, item),
+                                    tooltip: 'Eliminar',
                                   ),
                                 ],
                               ),
