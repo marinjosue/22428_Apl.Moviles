@@ -29,7 +29,7 @@ class PolizaViewModel extends PolizaViewModelInterface {
   @override
   String? error;
 
-  final String apiUrl = "http://localhost:9090/bdd_dto/api/poliza";
+  final String apiUrl = "https://poliza-backend.onrender.com/bdd_dto/api/poliza";
 
   @override
   void nuevo() {

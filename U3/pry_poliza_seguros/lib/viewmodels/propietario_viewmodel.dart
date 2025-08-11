@@ -20,7 +20,7 @@ class PropietarioViewModel extends ChangeNotifier implements PropietarioViewMode
 
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:9090/bdd_dto/api/propietarios'),
+        Uri.parse('https://poliza-backend.onrender.com/bdd_dto/api/propietarios'),
       );
 
       if (response.statusCode == 200) {

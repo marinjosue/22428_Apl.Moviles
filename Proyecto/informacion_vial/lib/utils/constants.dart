@@ -10,9 +10,11 @@ const String kRouteHome = '/home';
 const String kRouteScan = '/scan';
 const String kRouteChat = '/chat';
 const String kRouteHistory = '/history';
+const String kRouteInformacionVial = '/informacion-vial';
+const String kRouteEditarPerfil = '/editar-perfil';
 
 // Colores de la app
-const Color kPrimaryColor = Color(0xFF3BA935);
+const Color kPrimaryColor = Color(0xFF2196F3);
 const Color kAccentColor = Color(0xFFF3B401);
 
 // Otros textos globales

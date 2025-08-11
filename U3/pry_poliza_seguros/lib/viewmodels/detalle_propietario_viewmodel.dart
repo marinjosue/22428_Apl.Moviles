@@ -20,7 +20,7 @@ class DetallePropietarioViewModel extends ChangeNotifier {
 
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:9090/bdd_dto/api/poliza/usuario?id=$usuarioId'),
+        Uri.parse('https://poliza-backend.onrender.com/bdd_dto/api/poliza/usuario?id=$usuarioId'),
       );
 
       if (response.statusCode == 200) {

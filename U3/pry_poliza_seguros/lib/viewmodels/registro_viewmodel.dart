@@ -19,7 +19,7 @@ class RegistroViewModel extends ChangeNotifier {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:9090/bdd_dto/api/registro'),
+        Uri.parse('https://poliza-backend.onrender.com/bdd_dto/api/registro'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(data.toJson()),
       );

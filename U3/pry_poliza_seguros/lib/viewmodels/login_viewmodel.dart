@@ -32,7 +32,7 @@ class LoginViewModel extends LoginViewModelInterface {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:9090/bdd_dto/api/login'),
+        Uri.parse('https://poliza-backend.onrender.com/bdd_dto/api/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(loginData.toJson()),
       );
