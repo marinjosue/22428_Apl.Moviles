@@ -91,6 +91,53 @@ class BackendService {
       throw Exception('Error de conexión: $e');
     }
   }
+
+  // Actualizar perfil del usuario
+  Future<User> updateProfile({
+    required String token,
+    required String name,
+    required String email,
+    String? password,
+  }) async {
+    try {
+      print('Actualizando perfil del usuario...');
+      
+      final Map<String, dynamic> body = {
+        'name': name,
+        'email': email,
+      };
+      
+      // Solo incluir la contraseña si se proporciona
+      if (password != null && password.isNotEmpty) {
+        body['password'] = password;
+      }
+      
+      print('Body de actualización: $body');
+      
+      final response = await http.put(
+        Uri.parse('$kBaseUrl/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      print('updateProfile response status: ${response.statusCode}');
+      print('updateProfile response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return User.fromJson(data);
+      } else {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['detail'] ?? 'Error al actualizar perfil');
+      }
+    } catch (e) {
+      print('Error en updateProfile: $e');
+      throw Exception('Error de conexión: $e');
+    }
+  }
   
   Future<List<Map<String, dynamic>>> getHistory(int userId) async {
     try {

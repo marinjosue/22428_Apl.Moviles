@@ -59,6 +59,33 @@ class UserService {
       _accessToken = token;
     }
   }
+
+  Future<User> updateProfile({
+    required String name,
+    required String email,
+    String? password,
+  }) async {
+    if (_accessToken == null) {
+      throw Exception('No hay sesión activa');
+    }
+
+    try {
+      final updatedUser = await BackendService().updateProfile(
+        token: _accessToken!,
+        name: name,
+        email: email,
+        password: password,
+      );
+      
+      // Actualizar los datos locales
+      await saveUserAndToken(updatedUser, _accessToken!);
+      
+      return updatedUser;
+    } catch (e) {
+      print('Error actualizando perfil: $e');
+      throw e;
+    }
+  }
   
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();

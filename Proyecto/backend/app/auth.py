@@ -79,18 +79,17 @@ def read_users_me(current_user: models.User = Depends(get_current_user)):
 
 @router.put("/me", response_model=schemas.UserOut)
 def update_profile(
-    user_update: schemas.UserCreate,  # O crea un nuevo esquema para editar solo nombre/correo
+    user_update: schemas.UserUpdate,  # Ahora usa el esquema opcional
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    # Verifica si el correo ya está en uso por otro usuario
     if user_update.email != current_user.email:
         db_user = db.query(models.User).filter(models.User.email == user_update.email).first()
         if db_user:
             raise HTTPException(status_code=400, detail="Correo ya registrado por otro usuario")
     current_user.email = user_update.email
     current_user.name = user_update.name
-    if user_update.password:
+    if user_update.password:  # Solo actualiza si se envía una nueva contraseña
         current_user.hashed_password = get_password_hash(user_update.password)
     db.commit()
     db.refresh(current_user)

@@ -64,11 +64,12 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
     });
 
     try {
-      // Aquí puedes implementar la lógica de actualización
-      // usando tu backend API
-      
-      // Simulación de actualización exitosa
-      await Future.delayed(const Duration(seconds: 2));
+      // Llamar al servicio real para actualizar el perfil
+      await UserService.instance.updateProfile(
+        name: _nombreController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.isNotEmpty ? _passwordController.text : null,
+      );
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,6 +78,11 @@ class _EditarPerfilScreenState extends State<EditarPerfilScreen> {
             backgroundColor: Colors.green,
           ),
         );
+        
+        // Limpiar los campos de contraseña
+        _passwordController.clear();
+        _confirmPasswordController.clear();
+        
         Navigator.pop(context);
       }
     } catch (e) {

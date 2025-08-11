@@ -45,3 +45,8 @@ class HistoryOut(BaseModel):
     timestamp: datetime
     class Config:
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    email: str
+    name: str
+    password: Optional[str] = None
