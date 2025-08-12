@@ -42,25 +42,25 @@ class InformacionVialScreen extends StatelessWidget {
                 _SignalInfo(
                   'Prohibido el Paso',
                   'Indica que está prohibido el paso de vehículos',
-                  Icons.block,
+                  'assets/images/prohibido_paso.jpg',
                   Colors.red,
                 ),
                 _SignalInfo(
                   'Prohibido Estacionar',
                   'No se permite estacionar vehículos en esta zona',
-                  Icons.local_parking,
+                  'assets/images/prohibido_estacionar.jpg',
                   Colors.red,
                 ),
                 _SignalInfo(
                   'Prohibido Girar a la Izquierda',
                   'No está permitido realizar giros hacia la izquierda',
-                  Icons.turn_left,
+                  'assets/images/prohibido_izquierda.jpg',
                   Colors.red,
                 ),
                 _SignalInfo(
                   'Prohibido Adelantar',
                   'No se permite adelantar a otros vehículos',
-                  Icons.compare_arrows,
+                  'assets/images/prohibido_adelantar.png',
                   Colors.red,
                 ),
               ],
@@ -75,25 +75,25 @@ class InformacionVialScreen extends StatelessWidget {
                 _SignalInfo(
                   'Dirección Obligatoria',
                   'Indica la dirección que deben seguir los vehículos',
-                  Icons.arrow_forward,
+                  'assets/images/direccion_obligatoria.jpg',
                   Colors.blue,
                 ),
                 _SignalInfo(
                   'Uso Obligatorio de Cinturón',
                   'Es obligatorio usar cinturón de seguridad',
-                  Icons.safety_check,
+                  'assets/images/cinturon_obligatorio.png',
                   Colors.blue,
                 ),
                 _SignalInfo(
                   'Velocidad Mínima',
                   'Indica la velocidad mínima permitida',
-                  Icons.speed,
+                  'assets/images/velocidad_minima.png',
                   Colors.blue,
                 ),
                 _SignalInfo(
                   'Solo Peatones',
                   'Vía exclusiva para el tránsito de peatones',
-                  Icons.directions_walk,
+                  'assets/images/solo_peatones.jpg',
                   Colors.blue,
                 ),
               ],
@@ -108,25 +108,25 @@ class InformacionVialScreen extends StatelessWidget {
                 _SignalInfo(
                   'Curva Peligrosa',
                   'Advierte sobre la presencia de una curva peligrosa',
-                  Icons.turn_right,
+                  'assets/images/curva_peligrosa.jpg',
                   Colors.orange,
                 ),
                 _SignalInfo(
                   'Zona Escolar',
                   'Indica proximidad a una zona escolar',
-                  Icons.school,
+                  'assets/images/zona_escolar.png',
                   Colors.orange,
                 ),
                 _SignalInfo(
                   'Cruce de Peatones',
                   'Advierte sobre un cruce peatonal próximo',
-                  Icons.accessibility,
+                  'assets/images/cruce_peatones.jpg',
                   Colors.orange,
                 ),
                 _SignalInfo(
                   'Superficie Resbaladiza',
                   'Precaución por superficie resbaladiza',
-                  Icons.warning,
+                  'assets/images/resbaladizo.jpg',
                   Colors.orange,
                 ),
               ],
@@ -141,25 +141,25 @@ class InformacionVialScreen extends StatelessWidget {
                 _SignalInfo(
                   'Hospital',
                   'Indica la ubicación de un centro de salud',
-                  Icons.local_hospital,
+                  'assets/images/hospital.jpg',
                   Colors.green,
                 ),
                 _SignalInfo(
                   'Gasolinera',
                   'Señala la ubicación de una estación de servicio',
-                  Icons.local_gas_station,
+                  'assets/images/gasolinera.png',
                   Colors.green,
                 ),
                 _SignalInfo(
                   'Estacionamiento',
                   'Indica zona de estacionamiento disponible',
-                  Icons.local_parking,
+                  'assets/images/estacionamiento.jpg',
                   Colors.green,
                 ),
                 _SignalInfo(
                   'Información Turística',
                   'Punto de información para turistas',
-                  Icons.info,
+                  'assets/images/info_turistica.jpg',
                   Colors.green,
                 ),
               ],
@@ -232,10 +232,11 @@ class InformacionVialScreen extends StatelessWidget {
                 color: senal.color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(50),
               ),
-              child: Icon(
-                senal.icono,
-                size: 32,
-                color: senal.color,
+              child: Image.asset(
+                senal.imagenPath,
+                width: 48,
+                height: 48,
+                fit: BoxFit.contain,
               ),
             ),
             const SizedBox(height: 12),
@@ -271,8 +272,8 @@ class InformacionVialScreen extends StatelessWidget {
 class _SignalInfo {
   final String nombre;
   final String descripcion;
-  final IconData icono;
+  final String imagenPath;
   final Color color;
 
-  _SignalInfo(this.nombre, this.descripcion, this.icono, this.color);
+  _SignalInfo(this.nombre, this.descripcion, this.imagenPath, this.color);
 }
